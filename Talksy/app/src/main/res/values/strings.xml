@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">Talksy</string>
+    <string name="what_s_up">What’s up</string>
+    <string name="let_s_talk_with_your_friends_and_family_wherever_and_whenever">Let’s talk with your friends and family wherever and whenever</string>
+    <string name="continue_with_phone">Continue with phone</string>
+    <string name="Enter_your_phone_number">Enter your phone number</string>
+    <string name="please_confirm_your_region_and_enter_your_phone_number">Please confirm your region and enter your phone number</string>
+    <string name="enter_code">Enter code</string>
+    <string name="we_ve_sent_the_code_via_sms_to_62_999_9999_000">We’ve sent the code via SMS to +62 999 9999 000</string>
+    <string name="hi_welcome_back">Hi, Welcome Back! 👋</string>
+    <string name="example_gmail_com">example@gmail.com</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="enter_your_password">Enter Your Password</string>
+    <string name="remember_me">Remember Me</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="login">Login</string>
+    <string name="or_with">Or With</string>
+    <string name="login_with_facebook">Login with Facebook</string>
+    <string name="login_with_google">Login with Google</string>
+    <string name="don_t_have_an_account">Don’t have an account ?</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="create_an_account">Create an account</string>
+    <string name="connect_with_your_friend_today">Connect with your friend today!</string>
+    <string name="enter_your_username">Enter Your Username</string>
+    <string name="enter_your_email">Enter Your Email</string>
+    <string name="already_have_an_account"> <u>Already have an account?</u></string>
+    <string name="login2"><u>Login</u></string>
+    <string name="verify">Verify</string>
+    <string name="resend_code">Resend code</string>
+    <string name="enter_verification_code">Enter verification code</string>
+    <string name="didn_t_get_the_code_resend_code">Didn’t get the code? Resend code</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="_0">0</string>
+
+    <string name="facebook_app_id">2004446756686613</string>
+    <string name="fb_login_protocol_scheme">fb2004446756686613</string>
+    <string name="facebook_client_token">4eb1db06218a38f0eb2a6509a6a55846</string>
+
+
+
+
+</resources>

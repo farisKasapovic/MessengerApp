@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginHorizontal="24dp"
+    >
+    <TextView
+        android:id="@+id/loginTV1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/hi_welcome_back"
+        android:fontFamily="sans-serif"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:layout_marginTop="50dp"
+        android:textSize="20sp"
+        android:textAlignment="center"
+        />
+    <TextView
+        android:id="@+id/loginTV2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/email"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/loginTV1"
+        android:layout_marginTop="@dimen/space_m"
+        android:textColor="@color/gray"
+        android:textSize="@dimen/space_s"
+
+        />
+
+    <EditText
+        android:id="@+id/loginET1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/loginTV2"
+        android:background="@drawable/et_code_border"
+        android:layout_marginTop="@dimen/space_xxxs"
+        android:hint="@string/example_gmail_com"
+        android:textColorHint="@color/gray"
+        android:textColor="@color/black"
+        android:paddingStart="@dimen/space_xs"
+        android:paddingVertical="@dimen/space_xs"
+        />
+
+    <TextView
+        android:id="@+id/loginTV3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/password"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/loginET1"
+        android:layout_marginTop="@dimen/space_m"
+        android:textColor="@color/gray"
+        android:textSize="@dimen/text_size_h5"
+        />
+
+    <EditText
+        android:id="@+id/loginET2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/loginTV3"
+        android:background="@drawable/et_code_border"
+        android:layout_marginTop="@dimen/space_xxxs"
+        android:hint="@string/enter_your_password"
+        android:textColorHint="@color/gray"
+        android:paddingStart="@dimen/space_xs"
+        android:paddingVertical="@dimen/space_xs"
+        android:inputType="textPassword"
+        android:textColor="@color/black"
+        />
+
+    <CheckBox
+        android:id="@+id/checkBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/loginET2"
+        android:layout_marginTop="@dimen/space_l"
+        android:text="@string/remember_me"
+        android:textColor="@color/black"
+        android:fontFamily="sans-serif"
+        android:textSize="@dimen/text_size_body_2"
+        android:buttonTint="@color/black"
+        />
+
+    <TextView
+        android:id="@+id/forgotPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/checkBox"
+        app:layout_constraintBottom_toBottomOf="@id/checkBox"
+
+        android:text="@string/forgot_password"
+        android:textSize="@dimen/text_size_body_2"
+        android:fontFamily="sans-serif"
+        android:textColor="@color/forgotPass"
+        />
+
+
+    <Button
+        android:id="@+id/loginBtn1"
+        style="@style/btnStyle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/checkBox"
+        android:layout_marginTop="@dimen/space_xxl"
+        android:text="@string/login" />
+
+    <TextView
+        android:id="@+id/loginTV4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/or_with"
+        app:layout_constraintTop_toBottomOf="@id/loginBtn1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/loginBtn2"
+        android:layout_marginTop="76dp"
+        android:textColor="@color/black"
+        android:fontFamily="sans-serif"
+        android:textSize="18sp"
+        />
+
+    <View
+        android:id="@+id/divider1"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/space_xxxxs"
+        app:layout_constraintTop_toTopOf="@id/loginTV4"
+        app:layout_constraintBottom_toBottomOf="@id/loginTV4"
+        app:layout_constraintEnd_toStartOf="@id/loginTV4"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginEnd="8dp"
+        android:background="@color/gray"
+        />
+
+    <View
+        android:id="@+id/divider2"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/space_xxxxs"
+        app:layout_constraintTop_toTopOf="@id/loginTV4"
+        app:layout_constraintBottom_toBottomOf="@id/loginTV4"
+        app:layout_constraintStart_toEndOf="@id/loginTV4"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="8dp"
+        android:background="@color/gray"
+        />
+
+    <Button
+        android:id="@+id/loginBtn2"
+        style="@style/btnStyle"
+        android:text="@string/login_with_facebook"
+        android:drawableStart="@drawable/fb_icon"
+        android:textAlignment="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/loginTV4"
+        app:layout_constraintBottom_toTopOf="@id/loginBtn3"
+        android:layout_marginTop="@dimen/space_xxl" />
+
+
+    <Button
+        android:id="@+id/loginBtn3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/loginBtn2"
+        android:layout_marginTop="@dimen/space_xxxs"
+        android:text="@string/login_with_google"
+        android:textColor="@color/gray"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textSize="@dimen/text_size_body_1"
+        android:backgroundTint="@color/white"
+        android:background="@drawable/button_style"
+        android:drawableStart="@drawable/google_icon"
+        app:layout_constraintBottom_toTopOf="@id/loginTV5"
+        android:textAllCaps="false"
+        />
+
+    <TextView
+        android:id="@+id/loginTV5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_4xl"
+        android:layout_marginTop="@dimen/space_m"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="20dp"
+        android:text="@string/don_t_have_an_account"
+        android:textColor="@color/gray"
+        android:textSize="@dimen/text_size_body_1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/loginTV6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/loginBtn3" />
+    <TextView
+        android:id="@+id/loginTV6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/loginTV5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/loginTV5"
+        app:layout_constraintBottom_toBottomOf="@id/loginTV5"
+        android:text="@string/sign_up"
+        android:textSize="@dimen/text_size_body_1"
+        android:layout_marginEnd="@dimen/space_4xl"
+        android:textColor="@color/signUp"
+        />
+</androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

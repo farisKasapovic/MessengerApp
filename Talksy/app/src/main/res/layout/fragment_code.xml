@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginHorizontal="24dp">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/enter_code"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="145dp" />
+
+    <!-- Description -->
+    <TextView
+        android:id="@+id/tv_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="We've sent the code via SMS to +62 999 9999 000"
+        android:textSize="16sp"
+        android:textColor="@color/gray"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/tv_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp"
+        />
+
+    <!-- Code Input: 6 EditTexts -->
+    <EditText
+        android:id="@+id/et_code_1"
+        android:layout_width="50dp"
+        android:layout_height="60dp"
+        android:background="@drawable/code_input_background"
+        android:gravity="center"
+        android:inputType="number"
+        android:textSize="20sp"
+        android:imeOptions="actionNext"
+        android:maxLength="1"
+        android:hint="@string/_0"
+        android:textColorHint="@color/gray"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/tv_description"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/et_code_2"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintHorizontal_bias="0.5"
+        android:layout_marginTop="64dp" />
+
+    <EditText
+        android:id="@+id/et_code_2"
+        android:layout_width="50dp"
+        android:layout_height="60dp"
+        android:background="@drawable/code_input_background"
+        android:gravity="center"
+        android:inputType="number"
+        android:textSize="20sp"
+        android:imeOptions="actionNext"
+        android:maxLength="1"
+        android:hint="@string/_0"
+        android:textColorHint="@color/gray"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toTopOf="@id/et_code_1"
+        app:layout_constraintStart_toEndOf="@id/et_code_1"
+        app:layout_constraintEnd_toStartOf="@id/et_code_3" />
+
+    <EditText
+        android:id="@+id/et_code_3"
+        android:layout_width="50dp"
+        android:layout_height="60dp"
+        android:background="@drawable/code_input_background"
+        android:gravity="center"
+        android:inputType="number"
+        android:textSize="20sp"
+        android:imeOptions="actionNext"
+        android:maxLength="1"
+        android:hint="@string/_0"
+        android:textColorHint="@color/gray"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toTopOf="@id/et_code_1"
+        app:layout_constraintStart_toEndOf="@id/et_code_2"
+        app:layout_constraintEnd_toStartOf="@id/et_code_4" />
+
+    <EditText
+        android:id="@+id/et_code_4"
+        android:layout_width="50dp"
+        android:layout_height="60dp"
+        android:background="@drawable/code_input_background"
+        android:gravity="center"
+        android:inputType="number"
+        android:textSize="20sp"
+        android:imeOptions="actionNext"
+        android:maxLength="1"
+        android:hint="@string/_0"
+        android:textColorHint="@color/gray"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toTopOf="@id/et_code_1"
+        app:layout_constraintStart_toEndOf="@id/et_code_3"
+        app:layout_constraintEnd_toStartOf="@id/et_code_5" />
+
+    <EditText
+        android:id="@+id/et_code_5"
+        android:layout_width="50dp"
+        android:layout_height="60dp"
+        android:background="@drawable/code_input_background"
+        android:gravity="center"
+        android:inputType="number"
+        android:textSize="20sp"
+        android:imeOptions="actionNext"
+        android:maxLength="1"
+        android:hint="@string/_0"
+        android:textColorHint="@color/gray"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toTopOf="@id/et_code_1"
+        app:layout_constraintStart_toEndOf="@id/et_code_4"
+        app:layout_constraintEnd_toStartOf="@id/et_code_6" />
+
+    <EditText
+        android:id="@+id/et_code_6"
+        android:layout_width="50dp"
+        android:layout_height="60dp"
+        android:background="@drawable/code_input_background"
+        android:gravity="center"
+        android:inputType="number"
+        android:textSize="20sp"
+        android:maxLength="1"
+        android:hint="@string/_0"
+        android:textColorHint="@color/gray"
+        android:textColor="@color/black"
+        android:imeOptions="actionDone"
+        app:layout_constraintTop_toTopOf="@id/et_code_1"
+        app:layout_constraintStart_toEndOf="@id/et_code_5"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Resend Code -->
+    <TextView
+        android:id="@+id/tv_resend_code"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/didn_t_get_the_code_resend_code"
+        android:textSize="14sp"
+        android:textColor="#007AFF"
+        android:layout_marginTop="32dp"
+        app:layout_constraintTop_toBottomOf="@id/et_code_1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

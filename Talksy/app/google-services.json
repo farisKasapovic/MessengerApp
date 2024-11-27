@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "289279097440",
+    "project_id": "talksy-b267e",
+    "storage_bucket": "talksy-b267e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:289279097440:android:89099b080de0b33ceba105",
+        "android_client_info": {
+          "package_name": "praksa.unravel.talksy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeY0pvY0AOJz1s_5nDDH0wj6Oina03Ow4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
