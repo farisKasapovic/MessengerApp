@@ -8,16 +8,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.LongDef
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import praksa.unravel.talksy.R
 import praksa.unravel.talksy.databinding.FragmentCodeBinding
-
+import praksa.unravel.talksy.ui.register.RegisterViewModel
+@AndroidEntryPoint
 class CodeFragment : Fragment() {
 
-    private lateinit var viewModel: CodeViewModel
+    private val viewModel: CodeViewModel by viewModels()
     private lateinit var binding: FragmentCodeBinding
 
     override fun onCreateView(
@@ -25,24 +29,27 @@ class CodeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_code, container, false)
-        viewModel = ViewModelProvider(this)[CodeViewModel::class.java]
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Retrieve the verification ID from arguments
+        // Retrieving
         val verificationId = arguments?.getString("verificationId")
-        val phoneNumber = arguments?.getString("phone")
-        binding.tvDescription.text = "We've sent the code via SMS to $phoneNumber"
-        if (verificationId != null) {
-            viewModel.setVerificationId(verificationId)
+        val email = arguments?.getString("email")
+        val password = arguments?.getString("password")
+        val username = arguments?.getString("username")
+        val phone = arguments?.getString("phone")
+
+
+        Log.d("CodeFragment","Your verification id is $verificationId")
+        binding.tvDescription.text = "We've sent the code via SMS to $phone"
+        if (verificationId != null && email!=null && password!=null && username!=null && phone!=null) {
+            setupEditTexts(verificationId, email, password, username, phone)
         } else {
             Log.e("CodeFragment", "Verification ID is null")
         }
-
-        setupEditTexts()
 
         binding.tvResendCode.setOnClickListener {
             Toast.makeText(
@@ -55,7 +62,13 @@ class CodeFragment : Fragment() {
         observeViewModel()
     }
 
-    private fun setupEditTexts() {
+    private fun setupEditTexts(
+        verificationId: String,
+        email: String,
+        password: String,
+        username: String,
+        phone: String
+    ) {
         val editTexts = arrayOf(
             binding.etCode1,
             binding.etCode2,
@@ -82,7 +95,14 @@ class CodeFragment : Fragment() {
                         } else {
                             editTexts[i].clearFocus()
                             val code = editTexts.joinToString("") { it.text.toString() }
-                            viewModel.verifyCode(code)
+                            viewModel.verifyCodeAndRegister(
+                                code,
+                                verificationId,
+                                email,
+                                password,
+                                username,
+                                phone
+                            )
                         }
                     }
                 }
@@ -93,7 +113,7 @@ class CodeFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.verificationSuccess.observe(viewLifecycleOwner) { success ->
+        viewModel.registrationComplete.observe(viewLifecycleOwner) { success ->
             if (success) {
                 Toast.makeText(requireContext(), "Phone number verified!", Toast.LENGTH_SHORT)
                     .show()

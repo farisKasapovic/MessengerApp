@@ -6,7 +6,7 @@ facebookLoginVersion = "15.2.0"
 firebaseBom = "33.6.0"
 hiltAndroid = "2.51.1"
 hiltCompiler = "2.51.1"
-kotlin = "2.0.10"
+kotlin = "1.9.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -49,5 +49,5 @@ play-services-auth = { module = "com.google.android.gms:play-services-auth", ver
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version = "2.0.10" }
 
