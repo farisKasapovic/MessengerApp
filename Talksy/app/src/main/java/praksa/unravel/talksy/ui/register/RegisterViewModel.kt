@@ -5,10 +5,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.facebook.AccessToken
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.domain.usecase.*
 import javax.inject.Inject
@@ -17,14 +21,30 @@ import javax.inject.Inject
 class RegisterViewModel @Inject constructor(
     private val checkEmailExistsUseCase: CheckEmailExistsUseCase,
     private val checkUsernameExistsUseCase: CheckUsernameExistsUseCase,
-    private val sendVerificationCodeUseCase: SendVerificationCodeUseCase
+    private val sendVerificationCodeUseCase: SendVerificationCodeUseCase,
+    private val loginWithFacebookUseCase: LoginWithFacebookUseCase,
+    private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
+    private val checkPhoneNumberExistsUseCase: CheckPhoneNumberExistsUseCase
 ) : ViewModel() {
+
+    /*private val _loginSuccess = MutableLiveData<Boolean>()
+    val loginSuccess: LiveData<Boolean> = _loginSuccess
 
     private val _registrationState = MutableLiveData<String>()
     val registrationState: LiveData<String> get() = _registrationState
 
     private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> get() = _errorMessage
+    val errorMessage: LiveData<String?> get() = _errorMessage*/
+
+    private val _loginSuccess = MutableStateFlow(false)
+    val loginSuccess: StateFlow<Boolean> = _loginSuccess
+
+    private val _registrationState = MutableStateFlow<String?>(null)
+    val registrationState: StateFlow<String?> = _registrationState
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+
 
     fun startRegistration(
         email: String, password: String, username: String, phoneNumber: String, activity: FragmentActivity
@@ -43,6 +63,12 @@ class RegisterViewModel @Inject constructor(
                 val usernameExists = checkUsernameExistsUseCase.invoke(username)
                 if(usernameExists){
                     _errorMessage.value = "Username already exists"
+                    return@launch
+                }
+
+                val phoneNumberExists = checkPhoneNumberExistsUseCase.invoke(phoneNumber)
+                if(phoneNumberExists){
+                    _errorMessage.value = "Number already exists"
                     return@launch
                 }
 
@@ -65,126 +91,31 @@ class RegisterViewModel @Inject constructor(
             }
         }
         //}
-    }}
+    }
 
-    /*fun verifyPhoneNumberWithCode(verificationId: String, code: String, email: String, password: String, username: String,phoneNumber: String) {
+    //Prijava sa facebook
+fun loginWithFacebook(token:AccessToken){
+    viewModelScope.launch {
+        try {
+            val success = loginWithFacebookUseCase.invoke(token)
+            _loginSuccess.value = success
+        } catch (e: Exception) {
+            _errorMessage.value = e.message
+        }
+    }
+}
+
+    // Prijava sa Google-om
+    fun loginWithGoogle(account: GoogleSignInAccount) {
         viewModelScope.launch {
             try {
-                val credential = verifyPhoneNumberWithCodeUseCase(verificationId, code)
-                linkPhoneNumber(credential, email, password, username, phoneNumber )
+                val success = loginWithGoogleUseCase.invoke(account)
+                _loginSuccess.value = success
             } catch (e: Exception) {
                 _errorMessage.value = e.message
             }
         }
     }
 
-    private fun linkPhoneNumber(credential: PhoneAuthCredential, email: String, password: String, username: String,phoneNumber: String) {
-        viewModelScope.launch {
-            try {
-                val phoneLinked = linkPhoneNumberUseCase.invoke(credential)
-                if (!phoneLinked) {
-                    _errorMessage.value = "Failed to link phone number."
-                    return@launch
-                }
 
-                // Registruj email i poveži sa telefonom
-                val userId = registerUserInAuthUseCase.invoke(email, password)
-                val emailLinked = linkEmailAndPasswordUseCase(email, password)
-
-                if (!emailLinked) {
-                    _errorMessage.value = "Failed to link email and password."
-                    return@launch
-                }
-
-                // Dodaj korisnika u Firestore
-                val user = User(id = "", email = email, username = username, phone =phoneNumber )
-                addUserToDatabaseUseCase.invoke(user)
-
-                _registrationState.value = "Registration successful."
-            } catch (e: Exception) {
-                _errorMessage.value = e.message
-            }
-        }
-    }*/
-
-
-
-
-
-/*
-    fun registerUser(email: String, password: String, username: String, phone: String) {
-        firebaseAuth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val userId = firebaseAuth.currentUser?.uid ?: return@addOnCompleteListener
-                    val user = User(
-                        id = userId,
-                        username = username,
-                        email = email,
-                        phone = phone
-                    )
-                    saveUserToFirestore(user)
-                } else {
-                    _errorMessage.value = task.exception?.message
-                }
-            }
-    }
-
-
-
-
-
-    private fun sendVerificationCode(phoneNumber: String) {
-        val activity = activityReference?.get()
-        if (activity == null) {
-            _errorMessage.value = "Activity is null"
-            return
-        }
-
-        val options = PhoneAuthOptions.newBuilder(firebaseAuth)
-            .setPhoneNumber(phoneNumber)
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setActivity(activity) // WeakReference omogućava sigurno korišćenje
-            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    linkPhoneNumber(credential)
-                }
-
-                override fun onVerificationFailed(e: FirebaseException) {
-                    _errorMessage.value = e.message
-                }
-
-                override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
-                    _verificationCodeSent.value = verificationId
-                }
-            })
-            .build()
-
-        PhoneAuthProvider.verifyPhoneNumber(options)
-    }
-
-    private fun linkPhoneNumber(credential: PhoneAuthCredential) {
-        firebaseAuth.currentUser?.linkWithCredential(credential)
-            ?.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    _registrationSuccess.value = true
-                } else {
-                    _errorMessage.value = task.exception?.message
-                }
-            }
-    }
-
-
-
-
-
-    private fun saveUserToFirestore(user: User) {
-        firestore.collection("Users").document(user.id)
-            .set(user)
-            .addOnSuccessListener {
-                _registrationSuccess.value = true
-            }
-            .addOnFailureListener { e ->
-                _errorMessage.value = e.message
-            }
-    }*/
+}

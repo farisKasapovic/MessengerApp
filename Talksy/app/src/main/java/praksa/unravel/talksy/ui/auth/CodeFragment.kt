@@ -12,12 +12,19 @@ import androidx.annotation.LongDef
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import praksa.unravel.talksy.R
 import praksa.unravel.talksy.databinding.FragmentCodeBinding
 import praksa.unravel.talksy.ui.register.RegisterViewModel
+import praksa.unravel.talksy.utils.ToastUtils
+
 @AndroidEntryPoint
 class CodeFragment : Fragment() {
 
@@ -52,11 +59,7 @@ class CodeFragment : Fragment() {
         }
 
         binding.tvResendCode.setOnClickListener {
-            Toast.makeText(
-                requireContext(),
-                "Resend functionality not yet implemented.",
-                Toast.LENGTH_SHORT
-            ).show()
+            ToastUtils.showCustomToast(requireContext(),"Resend functionallity not addded yet")
         }
 
         observeViewModel()
@@ -112,20 +115,41 @@ class CodeFragment : Fragment() {
         }
     }
 
+
+
     private fun observeViewModel() {
-        viewModel.registrationComplete.observe(viewLifecycleOwner) { success ->
-            if (success) {
-                Toast.makeText(requireContext(), "Phone number verified!", Toast.LENGTH_SHORT)
-                    .show()
-                findNavController().navigate(R.id.action_codeFragment_to_logout)
+
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                viewModel.errorMessage.collect() {errorMessage ->
+                    errorMessage?.let {
+                        ToastUtils.showCustomToast(requireContext(),errorMessage)
+                    }
+                }
             }
         }
 
-        viewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
-            if (errorMessage != null) {
-                Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
-                Log.e("CodeFragment", "Verification error: $errorMessage")
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                viewModel.registrationComplete.collect(){success ->
+                    if(success){
+                        ToastUtils.showCustomToast(requireContext(),"Phone Number Verified")
+                        findNavController().navigate((R.id.action_codeFragment_to_logout))
+                    }
+                }
             }
         }
+
+
+
+//        viewModel.registrationComplete.observe(viewLifecycleOwner) { success ->
+//            if (success) {
+//                ToastUtils.showCustomToast(requireContext(),"Phone number verified")
+//                findNavController().navigate(R.id.action_codeFragment_to_logout)
+//            }
+//        }
+//
+
     }
 }

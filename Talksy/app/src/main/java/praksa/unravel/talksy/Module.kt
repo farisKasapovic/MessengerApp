@@ -14,7 +14,13 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import praksa.unravel.talksy.domain.usecase.CheckPhoneNumberExistsUseCase
 import praksa.unravel.talksy.domain.usecase.CheckUsernameExistsUseCase
+import praksa.unravel.talksy.domain.usecase.LoginUserUseCase
+import praksa.unravel.talksy.domain.usecase.LoginWithFacebookUseCase
+import praksa.unravel.talksy.domain.usecase.LoginWithGoogleUseCase
+import praksa.unravel.talksy.domain.usecase.ForgotPasswordUseCase
+import praksa.unravel.talksy.domain.usecases.DeleteUserFromAuthUseCase
 import javax.inject.Singleton
 
 @Module
@@ -76,6 +82,35 @@ object Module {
     @Provides
     fun provideCheckUsernameExistsUseCase(repository: AuthRepository): CheckUsernameExistsUseCase{
         return CheckUsernameExistsUseCase(repository)
+    }
+    @Provides
+    fun provideLoginWithFacebookUseCase(authRepository: AuthRepository): LoginWithFacebookUseCase {
+        return LoginWithFacebookUseCase(authRepository)
+    }
+
+    @Provides
+    fun provideLoginWithGoogleUseCase(authRepository: AuthRepository): LoginWithGoogleUseCase {
+        return LoginWithGoogleUseCase(authRepository)
+    }
+
+    @Provides
+    fun provideLoginUserUseCase(authRepository: AuthRepository):LoginUserUseCase{
+        return LoginUserUseCase(authRepository)
+    }
+
+    @Provides
+    fun provideForgotPasswordUseCase(authRepository: AuthRepository):ForgotPasswordUseCase{
+        return ForgotPasswordUseCase(authRepository)
+    }
+
+    @Provides
+    fun provideCheckPhoneNumberUseCase(authRepository: AuthRepository):CheckPhoneNumberExistsUseCase{
+        return CheckPhoneNumberExistsUseCase(authRepository)
+    }
+
+    @Provides
+    fun provideDeleteUserFromAuthUseCase(authRepository: AuthRepository):DeleteUserFromAuthUseCase{
+        return DeleteUserFromAuthUseCase(authRepository)
     }
 
 }
