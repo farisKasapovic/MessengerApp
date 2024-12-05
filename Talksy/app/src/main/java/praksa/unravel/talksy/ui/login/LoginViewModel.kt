@@ -15,6 +15,8 @@ import praksa.unravel.talksy.domain.usecase.LoginUserUseCase
 import praksa.unravel.talksy.domain.usecase.LoginWithFacebookUseCase
 import praksa.unravel.talksy.domain.usecase.LoginWithGoogleUseCase
 import praksa.unravel.talksy.domain.usecase.ForgotPasswordUseCase
+import praksa.unravel.talksy.ui.login.LoginState
+import praksa.unravel.talksy.ui.register.RegisterState
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,23 +29,8 @@ class LoginViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    /*private val _resetSuccess = MutableLiveData<Boolean>()
-    val resetSuccess: LiveData<Boolean> get() = _resetSuccess
-
-    private val _loginSuccess = MutableLiveData<Boolean>()
-    val loginSuccess: LiveData<Boolean> get() = _loginSuccess
-
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> get() = _errorMessage*/
-
-    private val _resetSuccess = MutableStateFlow(false)
-    val resetSuccess: StateFlow<Boolean> get() = _resetSuccess
-
-    private val _loginSuccess = MutableStateFlow(false)
-    val loginSuccess: StateFlow<Boolean> get() = _loginSuccess
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
+    private val _loginState = MutableStateFlow<LoginState>(LoginState.Loading)
+    val loginState: StateFlow<LoginState> = _loginState
 
 
     // Login with email and password
@@ -51,10 +38,10 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val success = loginUserUseCase.invoke(email, password)
-                _loginSuccess.value = success
+                _loginState.value = LoginState.Success("Login successful!")
             } catch (e: Exception) {
-                _loginSuccess.value = false
-                _errorMessage.value = e.message
+                //_loginSuccess.value = false
+                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
             }
         }
     }
@@ -63,9 +50,9 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val success = loginWithFacebookUseCase.invoke(token)
-                _loginSuccess.value = success
+                _loginState.value = LoginState.Success("Facebook login successful!")
             } catch (e: Exception) {
-                _errorMessage.value = e.message
+                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
             }
         }
     }
@@ -75,9 +62,9 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val success = loginWithGoogleUseCase.invoke(account)
-                _loginSuccess.value = success
+                _loginState.value = LoginState.Success("Google login successful!")
             } catch (e: Exception) {
-                _errorMessage.value = e.message
+                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
             }
         }
     }
@@ -87,15 +74,15 @@ class LoginViewModel @Inject constructor(
             try {
                 val emailExists = checkEmailExistsUseCase.invoke(email)
                 if (!emailExists) {
-                    _errorMessage.value = "Email does not exists in our database"
-
+                    _loginState.value = LoginState.ResetProblem("Email does not exist in our database")
+                    _loginState.value = LoginState.Loading //reset stanja
                 } else {
+                    _loginState.value = LoginState.ResetSuccess("Check your email for password reset instructions")
                 forgotPasswordUseCase.invoke(email)
-                _resetSuccess.value = true
                 }
             } catch (e: Exception) {
-                _resetSuccess.value = false
-                _errorMessage.value = e.message
+                _loginState.value = LoginState.ResetProblem(e.message ?: "An unknown error occurred")
+                _loginState.value = LoginState.Loading //reset stanja
             }
         }
     }

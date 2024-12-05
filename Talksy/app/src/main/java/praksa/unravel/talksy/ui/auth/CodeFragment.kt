@@ -1,5 +1,6 @@
 package praksa.unravel.talksy.ui.auth
 
+import CodeState
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -50,16 +51,16 @@ class CodeFragment : Fragment() {
         val phone = arguments?.getString("phone")
 
 
-        Log.d("CodeFragment","Your verification id is $verificationId")
+        Log.d("CodeFragment", "Your verification id is $verificationId")
         binding.tvDescription.text = "We've sent the code via SMS to $phone"
-        if (verificationId != null && email!=null && password!=null && username!=null && phone!=null) {
+        if (verificationId != null && email != null && password != null && username != null && phone != null) {
             setupEditTexts(verificationId, email, password, username, phone)
         } else {
             Log.e("CodeFragment", "Verification ID is null")
         }
 
         binding.tvResendCode.setOnClickListener {
-            ToastUtils.showCustomToast(requireContext(),"Resend functionallity not addded yet")
+            ToastUtils.showCustomToast(requireContext(), "Resend functionallity not addded yet")
         }
 
         observeViewModel()
@@ -116,40 +117,31 @@ class CodeFragment : Fragment() {
     }
 
 
-
     private fun observeViewModel() {
-
-
         viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
-                viewModel.errorMessage.collect() {errorMessage ->
-                    errorMessage?.let {
-                        ToastUtils.showCustomToast(requireContext(),errorMessage)
+
+            viewModel.codeState.collect{ state ->
+                when(state){
+                    is CodeState.Idle ->{
+                        //
                     }
+                    is CodeState.Loading -> {
+                        //
+                    }
+                    is CodeState.Success -> {
+                        ToastUtils.showCustomToast(requireContext(),state.message)
+                        findNavController().navigate(R.id.action_codeFragment_to_logout)
+                    }
+                    is CodeState.Error -> {
+                        ToastUtils.showCustomToast(requireContext(),state.message)
+                    }
+                    else-> Unit   // like void in Java
                 }
+
             }
+
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
-                viewModel.registrationComplete.collect(){success ->
-                    if(success){
-                        ToastUtils.showCustomToast(requireContext(),"Phone Number Verified")
-                        findNavController().navigate((R.id.action_codeFragment_to_logout))
-                    }
-                }
-            }
-        }
-
-
-
-//        viewModel.registrationComplete.observe(viewLifecycleOwner) { success ->
-//            if (success) {
-//                ToastUtils.showCustomToast(requireContext(),"Phone number verified")
-//                findNavController().navigate(R.id.action_codeFragment_to_logout)
-//            }
-//        }
-//
 
     }
 }

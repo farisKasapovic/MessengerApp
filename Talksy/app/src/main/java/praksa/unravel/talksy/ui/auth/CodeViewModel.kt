@@ -1,5 +1,6 @@
 package praksa.unravel.talksy.ui.auth
 
+import CodeState
 import android.app.StartForegroundCalledOnStoppedServiceException
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -37,11 +38,14 @@ class CodeViewModel @Inject constructor(
 //    private val _errorMessage = MutableLiveData<String?>()
 //    val errorMessage: LiveData<String?> = _errorMessage
 
-    private val _registrationComplete = MutableStateFlow(false)
-    val registrationComplete: StateFlow<Boolean> = _registrationComplete
+//    private val _registrationComplete = MutableStateFlow(false)
+//    val registrationComplete: StateFlow<Boolean> = _registrationComplete
+//
+//    private val _errorMessage = MutableStateFlow<String?>(null)
+//    val errorMessage: StateFlow<String?> = _errorMessage
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
+    private val _codeState = MutableStateFlow<CodeState>(CodeState.Idle)
+    val codeState: StateFlow<CodeState> = _codeState
 
 
 
@@ -56,12 +60,14 @@ class CodeViewModel @Inject constructor(
     ) {
         if (verificationId.isNullOrEmpty() || code.length != 6) {
             Log.d("CodeViewModel","Uslo je u if uslove $verificationId i $code ")
-            _errorMessage.value = "Invalid verification code."
+            //_errorMessage.value = "Invalid verification code."
+            _codeState.value = CodeState.Error("Invalid verification code")
             return
         }
 
         viewModelScope.launch {
             try {
+                _codeState.value = CodeState.Loading
                 Log.d("CodeViewModel","Uslo je u CodeViewModel $verificationId  i $code")
                 val credential = verifyPhoneNumberWithCodeUseCase(verificationId, code)
 
@@ -70,7 +76,8 @@ class CodeViewModel @Inject constructor(
                 val phoneLinked = linkPhoneNumberUseCase.invoke(credential)
                 Log.d("CodeViewModel","linkanje telefona $phoneLinked")
                 if (!phoneLinked) {
-                    _errorMessage.value = "Phone verification failed. Please try again."
+//                    _errorMessage.value = "Phone verification failed. Please try again."
+                    _codeState.value = CodeState.Error("Phone verification failed. Please try again")
                     //dodati ovdje delete user
                     return@launch
                 }
@@ -83,11 +90,13 @@ class CodeViewModel @Inject constructor(
                 )
                 addUserToDatabaseUseCase.invoke(user)
 
-                _registrationComplete.value = true
+//                _registrationComplete.value = true
+                _codeState.value = CodeState.Success("Phone number verified")
             } catch (e: Exception) {
                 //OVDJE DODAJ DA OBRISES
                 deleteUserUseCase.invoke()
-                _errorMessage.value = e.message
+//                _errorMessage.value = e.message
+                _codeState.value = CodeState.Error(e.message?: "An error occurred")
             }
         }
     }

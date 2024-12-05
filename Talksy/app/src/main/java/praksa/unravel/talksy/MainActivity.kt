@@ -1,5 +1,6 @@
 package praksa.unravel.talksy
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -19,5 +20,9 @@ class MainActivity : AppCompatActivity() {
         //Initialize fb SDK
         FacebookSdk.setClientToken("4eb1db06218a38f0eb2a6509a6a55846")
         FacebookSdk.sdkInitialize(applicationContext)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
     }
 }

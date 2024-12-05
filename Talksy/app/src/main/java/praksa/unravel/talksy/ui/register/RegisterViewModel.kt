@@ -11,7 +11,9 @@ import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.domain.usecase.*
@@ -27,95 +29,103 @@ class RegisterViewModel @Inject constructor(
     private val checkPhoneNumberExistsUseCase: CheckPhoneNumberExistsUseCase
 ) : ViewModel() {
 
-    /*private val _loginSuccess = MutableLiveData<Boolean>()
-    val loginSuccess: LiveData<Boolean> = _loginSuccess
 
-    private val _registrationState = MutableLiveData<String>()
-    val registrationState: LiveData<String> get() = _registrationState
-
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> get() = _errorMessage*/
-
-    private val _loginSuccess = MutableStateFlow(false)
-    val loginSuccess: StateFlow<Boolean> = _loginSuccess
-
-    private val _registrationState = MutableStateFlow<String?>(null)
-    val registrationState: StateFlow<String?> = _registrationState
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
+    private val _registerState = MutableSharedFlow<RegisterState>(replay = 0)
+    val registerState: SharedFlow<RegisterState> = _registerState
 
 
     fun startRegistration(
-        email: String, password: String, username: String, phoneNumber: String, activity: FragmentActivity
+        email: String,
+        password: String,
+        username: String,
+        phone: String,
+        activity: FragmentActivity
     ) {
-        //viewModelScope.launch {
+        viewModelScope.launch {
+            val validationError = InputFieldValidator.validateInputs(email, password, username, phone)
+            if (validationError != null) {
+                _registerState.emit(RegisterState.Failed(validationError)) // Emit error
+                return@launch
+            }
 
-            viewModelScope.launch {
+            _registerState.emit(RegisterState.Loading)
+
             try {
-                // Provjeram da li email postoji
-                val emailExists = checkEmailExistsUseCase.invoke(email)
-                if (emailExists) {
-                    _errorMessage.value = "Email already exists."
+                if (checkEmailExistsUseCase.invoke(email)) {
+                    _registerState.emit(RegisterState.EmailAlreadyExists)
+                    return@launch
+                }
+                if (checkUsernameExistsUseCase.invoke(username)) {
+                    _registerState.emit(RegisterState.UsernameAlreadyExists)
+                    return@launch
+                }
+                if (checkPhoneNumberExistsUseCase.invoke(phone)) {
+                    _registerState.emit(RegisterState.PhoneNumberAlreadyExists)
                     return@launch
                 }
 
-                val usernameExists = checkUsernameExistsUseCase.invoke(username)
-                if(usernameExists){
-                    _errorMessage.value = "Username already exists"
-                    return@launch
-                }
+                sendVerificationCodeUseCase.invoke(
+                    phone,
+                    activity,
+                    object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                        override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                            // Success
+                        }
 
-                val phoneNumberExists = checkPhoneNumberExistsUseCase.invoke(phoneNumber)
-                if(phoneNumberExists){
-                    _errorMessage.value = "Number already exists"
-                    return@launch
-                }
+                        override fun onVerificationFailed(e: FirebaseException) {
+                            viewModelScope.launch {
+                                _registerState.emit(RegisterState.Failed("Verification failed: ${e.message}"))
+                            }
+                        }
 
-
-                // Pokretanje telefonske autentifikacije
-                sendVerificationCodeUseCase.invoke(phoneNumber, activity, object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                    override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    }
-
-                    override fun onVerificationFailed(e: FirebaseException) {
-                        _errorMessage.value = "Phone verification failed: ${e.message}"
-                    }
-
-                    override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
-                        _registrationState.value = verificationId
-                    }
-                })
+                        override fun onCodeSent(
+                            verificationId: String,
+                            token: PhoneAuthProvider.ForceResendingToken
+                        ) {
+                            viewModelScope.launch {
+                                _registerState.emit(
+                                    RegisterState.VerificationIdSuccess(
+                                        verificationId
+                                    )
+                                )
+                            }
+                        }
+                    })
             } catch (e: Exception) {
-                _errorMessage.value = e.message
+                _registerState.emit(RegisterState.Failed(e.message ?: "Unknown error"))
             }
         }
-        //}
     }
 
-    //Prijava sa facebook
-fun loginWithFacebook(token:AccessToken){
-    viewModelScope.launch {
-        try {
-            val success = loginWithFacebookUseCase.invoke(token)
-            _loginSuccess.value = success
-        } catch (e: Exception) {
-            _errorMessage.value = e.message
+    fun loginWithFacebook(token: AccessToken) {
+        viewModelScope.launch {
+            _registerState.emit(RegisterState.Loading)
+            try {
+                val success = loginWithFacebookUseCase.invoke(token)
+                if (success) {
+                    _registerState.emit(RegisterState.FacebookSuccess)
+                } else {
+                    _registerState.emit(RegisterState.Failed("Facebook login failed"))
+                }
+            } catch (e: Exception) {
+                _registerState.emit(RegisterState.Failed(e.message ?: "Facebook login error"))
+            }
         }
     }
-}
 
-    // Prijava sa Google-om
     fun loginWithGoogle(account: GoogleSignInAccount) {
         viewModelScope.launch {
+            _registerState.emit(RegisterState.Loading)
             try {
                 val success = loginWithGoogleUseCase.invoke(account)
-                _loginSuccess.value = success
+                if (success) {
+                    _registerState.emit(RegisterState.GoogleSuccess)
+                } else {
+                    _registerState.emit(RegisterState.Failed("Google login error"))
+                }
             } catch (e: Exception) {
-                _errorMessage.value = e.message
+                _registerState.emit(RegisterState.Failed(e.message ?: "Google login error"))
             }
         }
     }
-
-
 }

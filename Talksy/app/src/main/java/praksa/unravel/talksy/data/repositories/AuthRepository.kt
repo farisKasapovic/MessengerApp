@@ -89,10 +89,6 @@ class AuthRepository(
             val currentUser = firebaseAuth.currentUser
             currentUser?.delete()?.await() // Delete the user
 
-            // Optionally, remove the user's record from Firestore
-           // currentUser?.uid?.let { uid ->
-             //   db.collection("Users").document(uid).delete().await()
-           // }
 
             // Log success
             println("User successfully deleted from FirebaseAuth and Firestore.")
@@ -146,7 +142,7 @@ class AuthRepository(
                     profilePicture = it.photoUrl?.toString() ?: "No picture",
                     id = it.uid
                 )
-                addUserToDatabase(userData) // Koristimo vašu funkciju
+                addUserToDatabase(userData)
             }
             true
         } catch (e: Exception) {
@@ -167,7 +163,7 @@ class AuthRepository(
                     phone = "", // Ako imate broj, možete ga dodati
                     profilePicture = it.photoUrl?.toString() ?: "No picture",
                 )
-                addUserToDatabase(userData) // Koristimo vašu funkciju
+                addUserToDatabase(userData)
             }
             true
         } catch (e: Exception) {
@@ -195,6 +191,6 @@ suspend fun sendPasswordResetEmail(email:String){
 
 
 // 1. MORA PROVJERITI DA LI UOPSTE POSTOJI TAJ MAIL
-    // 2. remember me ...
+// 2. remember me ...
 
 }

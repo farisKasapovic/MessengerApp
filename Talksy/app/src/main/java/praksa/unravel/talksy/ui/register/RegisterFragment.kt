@@ -2,18 +2,13 @@ package praksa.unravel.talksy.ui.register
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -24,12 +19,13 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
 import praksa.unravel.talksy.R
 import praksa.unravel.talksy.databinding.FragmentRegisterBinding
 import praksa.unravel.talksy.utils.ToastUtils
 import java.util.regex.Pattern
 
+@Suppress("DEPRECATION")
 @AndroidEntryPoint
 class RegisterFragment : Fragment() {
 
@@ -54,22 +50,7 @@ class RegisterFragment : Fragment() {
             val phone = binding.registerET3.text.toString()
             val password = binding.registerET4.text.toString()
 
-            if (email.isNotEmpty() && password.isNotEmpty() && phone.isNotEmpty() && username.isNotEmpty()) {
-                if (isValidEmail(email)) {
-                    viewModel.startRegistration(
-                        email,
-                        password,
-                        username,
-                        "+38761898989",
-                        requireActivity()
-                    )
-                } else {
-                    ToastUtils.showCustomToast(requireContext(), "Email is not valid")
-                }
-            } else {
-                // Toast.makeText(requireContext(), "All fields are required", Toast.LENGTH_LONG).show()
-                ToastUtils.showCustomToast(requireContext(), "All fields are required!")
-            }
+            viewModel.startRegistration(email, password, username, /*"+38761898989"*/phone, requireActivity())
         }
 
         binding.registerTV4.setOnClickListener {
@@ -77,48 +58,18 @@ class RegisterFragment : Fragment() {
         }
 
         binding.registerBtn2.setOnClickListener {
-            val callbackManager = CallbackManager.Factory.create()
-            val loginButton = LoginButton(requireContext())
-            loginButton.setPermissions("email", "public_profile")
-
-            loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
-                override fun onSuccess(loginResult: LoginResult) {
-                    val accessToken = loginResult.accessToken
-                    viewModel.loginWithFacebook(accessToken)
-                }
-
-                override fun onCancel() {
-                    ToastUtils.showCustomToast(requireContext(), "Facebook login canceled")
-                }
-
-                override fun onError(error: FacebookException) {
-                    ToastUtils.showCustomToast(
-                        requireContext(),
-                        "Facebook login failed: ${error.message}"
-                    )
-                }
-            })
-
-            loginButton.performClick()
+            facebook()
         }
 
         binding.registerBtn3.setOnClickListener {
-            val googleSignInClient = GoogleSignIn.getClient(
-                requireActivity(),
-                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken(getString(R.string.default_web_client_id))
-                    .requestEmail()
-                    .build()
-            )
-
-            val signInIntent = googleSignInClient.signInIntent
-            startActivityForResult(signInIntent, RC_SIGN_IN)
+            google()
         }
 
         observeViewModel()
     }
 
     @Deprecated("Deprecated in Java")
+    //Registeronactivitycallback
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RC_SIGN_IN) {
@@ -134,63 +85,87 @@ class RegisterFragment : Fragment() {
         }
     }
 
-    private fun isValidEmail(email: String): Boolean {
-        val pattern = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}\$")
-        val matcher = pattern.matcher(email)
-        return matcher.matches()
+
+    private fun facebook(){
+        val callbackManager = CallbackManager.Factory.create()
+        val loginButton = LoginButton(requireContext())
+        loginButton.setPermissions("email", "public_profile")
+
+        loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+            override fun onSuccess(loginResult: LoginResult) {
+                val accessToken = loginResult.accessToken
+                viewModel.loginWithFacebook(accessToken)
+            }
+
+            override fun onCancel() {
+                ToastUtils.showCustomToast(requireContext(), "Facebook login canceled")
+            }
+
+            override fun onError(error: FacebookException) {
+                ToastUtils.showCustomToast(
+                    requireContext(),
+                    "Facebook login failed: ${error.message}"
+                )
+            }
+        })
+
+        loginButton.performClick()
     }
 
-    /* private fun observeViewModel() {
-        viewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
-            if (errorMessage != null) {
-                ToastUtils.showCustomToast(requireContext(), errorMessage)
-            }
-        }
+    private fun google(){
+        val googleSignInClient = GoogleSignIn.getClient(
+            requireActivity(),
+            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()
+        )
+
+        val signInIntent = googleSignInClient.signInIntent
+        startActivityForResult(signInIntent, RC_SIGN_IN)
     }
-    ....
-    */
+
+
     private fun observeViewModel() {
-        // Collect error message
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.errorMessage.collect { errorMessage ->
-                    errorMessage?.let {
-                        ToastUtils.showCustomToast(requireContext(), it)
+        lifecycleScope.launchWhenStarted {
+            viewModel.registerState.collectLatest { state ->
+                when (state) {
+                    is RegisterState.EmailAlreadyExists -> {
+                        ToastUtils.showCustomToast(requireContext(),"Email already exists")
                     }
-                }
-            }
-        }
-
-        // Collect registration state
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.registrationState.collect { verificationId ->
-                    verificationId?.let {
-                        val bundle = Bundle().apply {
-                            putString("verificationId", it)
-                            putString("phone", binding.registerET3.text.toString())
-                            putString("username", binding.registerET1.text.toString())
-                            putString("email", binding.registerET2.text.toString())
-                            putString("password", binding.registerET4.text.toString())
-                        }
-                        findNavController().navigate(
-                            R.id.action_registerFragment_to_codeFragment,
-                            bundle
-                        )
+                    is RegisterState.UsernameAlreadyExists -> {
+                        ToastUtils.showCustomToast(requireContext(),"Username already exists.")
                     }
-                }
-            }
-        }
-
-        // Collect login success
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.loginSuccess.collect { success ->
-                    if (success) {
+                    is RegisterState.PhoneNumberAlreadyExists -> {
+                        ToastUtils.showCustomToast(requireContext(),"Phone number already exists.")
+                    }
+                    is RegisterState.VerificationIdSuccess ->{
+                        navigateToCodeFragment(state.verificationId)
+                    }
+                    is RegisterState.FacebookSuccess ->{
                         findNavController().navigate(R.id.action_registerFragment_to_logout)
                     }
+                    is RegisterState.GoogleSuccess -> {
+                        findNavController().navigate(R.id.action_registerFragment_to_logout)
+                    }
+                    is RegisterState.Failed -> {
+                        ToastUtils.showCustomToast(requireContext(),state.errorMessage)
+                    }else -> Unit  // without RegisterState.Loading
+                    }
                 }
             }
         }
+
+    private fun navigateToCodeFragment(verificationId: String) {
+        val bundle = Bundle().apply {
+            putString("verificationId", verificationId)
+            putString("phone", binding.registerET3.text.toString())
+            putString("username", binding.registerET1.text.toString())
+            putString("email", binding.registerET2.text.toString())
+            putString("password", binding.registerET4.text.toString())
+        }
+        findNavController().navigate(R.id.action_registerFragment_to_codeFragment, bundle)
     }
-}
+
+    }
+
