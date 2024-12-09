@@ -15,3 +15,24 @@ sealed class RegisterState {
 
 
 // Various state during registration
+
+/*
+*
+* fun loginWithFacebook(token: AccessToken) {
+    viewModelScope.launch {
+        _registerState.emit(RegisterState.Loading)
+
+        val result = loginWithFacebookUseCase.invoke(token)
+        result.onSuccess { success ->
+            if (success) {
+                _registerState.emit(RegisterState.FacebookSuccess)
+            } else {
+                _registerState.emit(RegisterState.Failed("Facebook login failed"))
+            }
+        }.onFailure { error ->
+            _registerState.emit(RegisterState.Failed(error.message ?: "Facebook login error"))
+        }
+    }
+}
+*
+* */

@@ -22,12 +22,21 @@ object InputFieldValidator {
     }
 
     fun validatePassword(password: String): String? {
-        if (password.length < 5) {
-            return "Password must be at least 5 characters long."
-           // ovdje vratiti exception
+        if (password.length < 6) {
+            return "Password must be at least 6 characters long."
+        }
+        if (!password.any { it.isUpperCase() }) {
+            return "Password must contain at least one uppercase letter."
+        }
+        if (!password.any { "!@#$%^&*()-_=+<>?".contains(it) }) {
+            return "Password must contain at least one special character."
+        }
+        if (!password.any { it.isDigit() }) {
+            return "Password must contain at least one digit."
         }
         return null
     }
+
 
     fun validatePhoneNumber(phoneNumber: String): String? {
         if (!phoneNumber.matches(phonePattern)) {

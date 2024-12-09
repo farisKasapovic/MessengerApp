@@ -1,5 +1,6 @@
 package praksa.unravel.talksy.data.repositories
 
+import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import com.facebook.AccessToken
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -11,186 +12,225 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import praksa.unravel.talksy.model.User
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+import praksa.unravel.talksy.common.exception.Result
+
 
 class AuthRepository(
     private val firebaseAuth: FirebaseAuth,
     private val db: FirebaseFirestore
 ) {
 
-    //Provjera da li email postoji u bazi
-    suspend fun checkEmailExists(email: String): Boolean {
-        val snapshot = db.collection("Users")        // vraca QuerySnapshot objekat, niz dokumenata
-            .whereEqualTo(
-                "email",
-                email
-            )                    // ako ne postoji nijedan dokument snapshot ce biti prazan
+    suspend fun checkEmailExists(email: String): Result<Boolean> = suspendCoroutine { cont ->
+        db.collection("Users")
+            .whereEqualTo("email", email)
             .get()
-            .await()
-        return !snapshot.isEmpty
-    }
-    //Provjera za username
-    suspend fun checkUsernameExists(username: String):Boolean{
-        val nameCheck = db.collection("Users")
-            .whereEqualTo("username",username)
-            .get()
-            .await()
-        return !nameCheck.isEmpty
+            .addOnSuccessListener { snapshot ->
+//                cont.resume(Result.success(!snapshot.isEmpty))
+                if (!snapshot.isEmpty) {
+                    cont.resume(Result.success(true)) // Email postoji
+                } else {
+                    cont.resume(Result.failure(Exception("Email not found"))) // Email ne postoji
+                }
+            }
+            .addOnFailureListener { exception ->
+                cont.resume(Result.failure(exception))
+            }
     }
 
-    //Provjera da li postoji broj isti u bazi
-    suspend fun checkPhoneNumberExists(phone:String):Boolean{
-        val snapshot = db.collection("Users")
-            .whereEqualTo("phone",phone)
+    suspend fun checkUsernameExists(username: String): Result<Boolean> = suspendCoroutine { cont ->
+        db.collection("Users")
+            .whereEqualTo("username", username)
             .get()
-            .await()
-        return !snapshot.isEmpty
+            .addOnSuccessListener { snapshot ->
+                cont.resume(Result.success(!snapshot.isEmpty))
+            }
+            .addOnFailureListener { exception ->
+                cont.resume(Result.failure(exception))
+            }
     }
 
+    suspend fun checkPhoneNumberExists(phone: String): Result<Boolean> = suspendCoroutine { cont ->
+        db.collection("Users")
+            .whereEqualTo("phone", phone)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                cont.resume(Result.success(!snapshot.isEmpty))
+            }
+            .addOnFailureListener { exception ->
+                cont.resume(Result.failure(exception))
+            }
+    }
 
-
-    // Pocetak telefonske autentifikacije
     fun sendVerificationCode(
         phoneNumber: String,
         activity: FragmentActivity,
         callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
     ) {
-
         val options = PhoneAuthOptions.newBuilder(firebaseAuth)
             .setPhoneNumber(phoneNumber)
             .setTimeout(60L, TimeUnit.SECONDS)
             .setActivity(activity)
             .setCallbacks(callbacks)
             .build()
-        PhoneAuthProvider.verifyPhoneNumber(options)    //Calling firebas verify function
+        PhoneAuthProvider.verifyPhoneNumber(options)
     }
 
-    // Podudaranje koda i verificationId
     suspend fun verifyPhoneNumberWithCode(
         verificationId: String,
         code: String
-    ): PhoneAuthCredential {
-        return PhoneAuthProvider.getCredential(verificationId, code)
-    }
-
-    //Registracija korisnika u FirebaseAuth
-    suspend fun registerUserInAuth(email: String, password: String): String {
-        val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
-        return result.user?.uid ?: throw Exception("Failed to create user")
-    }
-
-
-    //Delete current user
-    suspend fun deleteUser() {
+    ): Result<PhoneAuthCredential> = suspendCoroutine { cont ->
         try {
-            // Get the current user
-            val currentUser = firebaseAuth.currentUser
-            currentUser?.delete()?.await() // Delete the user
-
-
-            // Log success
-            println("User successfully deleted from FirebaseAuth and Firestore.")
+            val credential = PhoneAuthProvider.getCredential(verificationId, code)
+            cont.resume(Result.success(credential))
         } catch (e: Exception) {
-            throw Exception("Failed to delete user: ${e.message}")
+            cont.resume(Result.failure(e))
         }
     }
 
+    suspend fun registerUserInAuth(email: String, password: String): Result<String> =
+        suspendCoroutine { cont ->
+            firebaseAuth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener { result ->
+                    val userId = result.user?.uid ?: ""
+                    cont.resume(Result.success(userId))
+                }
+                .addOnFailureListener { exception ->
+                    cont.resume(Result.failure(exception))
+                }
+        }
 
-    // Dodavanje korisnika u Firestore
-    suspend fun addUserToDatabase(user: User) {
+    suspend fun deleteUser(): Result<Unit> = suspendCoroutine { cont ->
+        val currentUser = firebaseAuth.currentUser
+        if (currentUser != null) {
+            currentUser.delete()
+                .addOnSuccessListener { cont.resume(Result.success(Unit)) }
+                .addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
+        } else {
+            cont.resume(Result.failure(Exception("No user is logged in")))
+        }
+    }
+ /// dodaoj ovdje nekako id
+    suspend fun addUserToDatabase(user: User): Result<Unit> = suspendCoroutine { cont ->
         db.collection("Users")
-            //.document(user.id)
-           // .set(user)
             .add(user)
-            .await()
+            .addOnSuccessListener { cont.resume(Result.success(Unit)) }
+            .addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
     }
 
-    // Povezivanje telefonskog broja sa emailom
-    suspend fun linkPhoneNumber(credential: PhoneAuthCredential): Boolean {
-        return try {
-            val result = firebaseAuth.currentUser?.linkWithCredential(credential)?.await()
-            result != null
-        } catch (e: Exception) {
-            throw e
+    suspend fun linkPhoneNumber(credential: PhoneAuthCredential): Result<Boolean> =
+        suspendCoroutine { cont ->
+            firebaseAuth.currentUser?.linkWithCredential(credential)
+                ?.addOnSuccessListener { cont.resume(Result.success(true)) }
+                ?.addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
+                ?: cont.resume(Result.failure(Exception("No user is logged in")))
         }
-    }
 
-    // Povezivanje emaila sa telefonskim brojem
-    suspend fun linkEmailAndPassword(email: String, password: String): Boolean {
-        val credential = EmailAuthProvider.getCredential(email, password)
-        return try {
-            val result = firebaseAuth.currentUser?.linkWithCredential(credential)?.await()
-            result != null
-        } catch (e: Exception) {
-            throw e
+    suspend fun linkEmailAndPassword(email: String, password: String): Result<Boolean> =
+        suspendCoroutine { cont ->
+            val credential = EmailAuthProvider.getCredential(email, password)
+            firebaseAuth.currentUser?.linkWithCredential(credential)
+                ?.addOnSuccessListener { cont.resume(Result.success(true)) }
+                ?.addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
+                ?: cont.resume(Result.failure(Exception("No user is logged in")))
         }
-    }
 
-
-    suspend fun loginWithFacebook(token: AccessToken): Boolean {
+    suspend fun loginWithFacebook(token: AccessToken): Result<Boolean> = suspendCoroutine { cont ->
         val credential = FacebookAuthProvider.getCredential(token.token)
-        return try {
-            val result = firebaseAuth.signInWithCredential(credential).await()
-            val user = result.user
-            user?.let {
-                val userData = User(
-                    email = it.email ?: "No email",
-                    username = it.displayName ?: "No name",
-                    phone = "", // Broj telefona nije dostupan iz Facebook API-ja
-                    profilePicture = it.photoUrl?.toString() ?: "No picture",
-                    id = it.uid
-                )
-                addUserToDatabase(userData)
+        Log.d("AuthRepository","U loginWithFacebook $credential")
+        firebaseAuth.signInWithCredential(credential)
+            .addOnSuccessListener { result ->
+                val user = result.user
+                if (user != null) {
+                    val userData = User(
+                        email = user.email ?: "No email",
+                        username = user.displayName ?: "No name",
+                        phone = "",
+                        profilePicture = user.photoUrl?.toString() ?: "No picture",
+                        id = user.uid
+                    )
+                    GlobalScope.launch {
+                        val databaseResult = addUserToDatabase(userData)
+                        when(databaseResult){
+                            is Result.success -> {
+                                cont.resume(Result.success(true))
+                            }
+                            is Result.failure -> {
+                                cont.resume(Result.failure(Throwable("ISPRAVI MEEE E E E ")))
+                            }
+                        }
+//                        addUserToDatabase(userData).onSuccess {
+//                            cont.resume(Result.success(true))
+//                        }.onFailure { error ->
+//                            cont.resume(Result.failure(error))
+//                        }
+                    }
+                }else {
+                    cont.resume(Result.failure(Exception("Facebook login failed")))
+                }
             }
-            true
-        } catch (e: Exception) {
-            throw e
-        }
+            .addOnFailureListener { exception ->
+                cont.resume(Result.failure(exception))
+            }
     }
 
-    suspend fun loginWithGoogle(account: GoogleSignInAccount): Boolean {
+
+    suspend fun loginWithGoogle(account: GoogleSignInAccount): Result<Boolean> = suspendCoroutine { cont ->
         val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-        return try {
-            val result = firebaseAuth.signInWithCredential(credential).await()
-            val user = result.user
-            user?.let {
-                val userData = User(
-                    id = it.uid,
-                    username = it.displayName ?: "No name",
-                    email = it.email ?: "No email",
-                    phone = "", // Ako imate broj, možete ga dodati
-                    profilePicture = it.photoUrl?.toString() ?: "No picture",
-                )
-                addUserToDatabase(userData)
+        firebaseAuth.signInWithCredential(credential)
+            .addOnSuccessListener { result ->
+                val user = result.user
+                if (user != null) {
+                    val userData = User(
+                        id = user.uid,
+                        username = user.displayName ?: "No name",
+                        email = user.email ?: "No email",
+                        phone = "",
+                        profilePicture = user.photoUrl?.toString() ?: "No picture"
+                    )
+
+                    // Launch a coroutine for the suspend function
+                    GlobalScope.launch {
+                        val databaseResult = addUserToDatabase(userData)
+                        when(databaseResult){
+                            is Result.success -> {
+                                cont.resume(Result.success(true))
+                            }
+                            is Result.failure -> {
+                                cont.resume(Result.failure(Throwable("ISPRAVI MEEEEEEEEEEE")))
+                            }
+                        }
+//                        databaseResult.onSuccess {
+//                            cont.resume(Result.success(true))
+//                        }.onFailure { error ->
+//                            cont.resume(Result.failure(error))
+//                        }
+                    }
+                } else {
+                    cont.resume(Result.failure(Exception("Google login failed")))
+                }
             }
-            true
-        } catch (e: Exception) {
-            throw e
+            .addOnFailureListener { exception ->
+                cont.resume(Result.failure(exception))
+            }
+    }
+
+
+    suspend fun loginUserWithEmail(email: String, password: String): Result<Boolean> =
+        suspendCoroutine { cont ->
+            firebaseAuth.signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener { cont.resume(Result.success(true)) }
+                .addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
         }
+
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> = suspendCoroutine { cont ->
+        firebaseAuth.sendPasswordResetEmail(email)
+            .addOnSuccessListener { cont.resume(Result.success(Unit)) }
+            .addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
     }
-
-    suspend fun loginUserWithEmail(email: String, password: String): Boolean {
-        return try {
-            val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            result.user != null
-        } catch (e: Exception) {
-            throw Exception(e.message ?: "Login failed")
-        }
-    }
-
-suspend fun sendPasswordResetEmail(email:String){
-    try{ // MORA PROVJERITI DA LI UOPSTE POSTOJI TAJ MAIL
-        firebaseAuth.sendPasswordResetEmail(email).await()
-    }catch (e: Exception){
-        throw Exception("Failed to send resend email: ${e.message}")
-    }
-}
-
-
-
-// 1. MORA PROVJERITI DA LI UOPSTE POSTOJI TAJ MAIL
-// 2. remember me ...
-
 }

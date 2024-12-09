@@ -198,7 +198,7 @@ class LoginFragment : Fragment() {
                 // Collect resetSuccess
                 viewModel.resetSuccess.collect { success ->
                     if (success) {
-                        ToastUtils.showCustomToast(requireContext(), "Check your email for password reset instructions")
+                        ToastUtils.showCustomToast(requireContext(), "Checkche your email for password reset instructions")
                     }
               //  }
             }

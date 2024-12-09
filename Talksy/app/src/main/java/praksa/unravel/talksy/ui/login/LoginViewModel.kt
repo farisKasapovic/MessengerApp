@@ -1,5 +1,6 @@
 package praksa.unravel.talksy.ui.signin
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -17,6 +18,7 @@ import praksa.unravel.talksy.domain.usecase.LoginWithGoogleUseCase
 import praksa.unravel.talksy.domain.usecase.ForgotPasswordUseCase
 import praksa.unravel.talksy.ui.login.LoginState
 import praksa.unravel.talksy.ui.register.RegisterState
+import praksa.unravel.talksy.common.exception.Result
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,13 +38,23 @@ class LoginViewModel @Inject constructor(
     // Login with email and password
     fun loginUser(email: String, password: String) {
         viewModelScope.launch {
-            try {
-                val success = loginUserUseCase.invoke(email, password)
-                _loginState.value = LoginState.Success("Login successful!")
-            } catch (e: Exception) {
-                //_loginSuccess.value = false
-                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
+            val loginSuccess = loginUserUseCase.invoke(email,password)
+            Log.d("LoginViewModel", "u loginUser funkciiji $loginSuccess")
+            when(loginSuccess){
+                is Result.success -> {
+                    _loginState.value = LoginState.Success("Login successful!")
+                }
+                is Result.failure -> {
+                    _loginState.value = LoginState.Error( loginSuccess.error.message?: "An unknown error occurred")
+                }
             }
+//            try {
+//                val success = loginUserUseCase.invoke(email, password)
+//                _loginState.value = LoginState.Success("Login successful!")
+//            } catch (e: Exception) {
+//                //_loginSuccess.value = false
+//                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
+//            }
         }
     }
 
@@ -72,20 +84,46 @@ class LoginViewModel @Inject constructor(
     fun resetPassword(email: String) {
         viewModelScope.launch {
             try {
-                val emailExists = checkEmailExistsUseCase.invoke(email)
-                if (!emailExists) {
-                    _loginState.value = LoginState.ResetProblem("Email does not exist in our database")
-                    _loginState.value = LoginState.Loading //reset stanja
-                } else {
-                    _loginState.value = LoginState.ResetSuccess("Check your email for password reset instructions")
-                forgotPasswordUseCase.invoke(email)
+                _loginState.value = LoginState.Loading
+                Log.d("LoginViewModel", "ResetPassword: State set to Loading")
+
+                val emailExistsResult = checkEmailExistsUseCase.invoke(email)
+                Log.d("LoginViewModel", "ResetPassword: Email check result = $emailExistsResult")
+
+                when (emailExistsResult) {
+                    is Result.success -> {
+                        if (!emailExistsResult.data) {
+                            _loginState.value = LoginState.ResetProblem("Email does not exist in our database")
+                            Log.d("LoginViewModel", "ResetPassword: Email does not exist")
+                        } else {
+                            val forgotPasswordResult = forgotPasswordUseCase.invoke(email)
+                            when (forgotPasswordResult) {
+                                is Result.success -> {
+//                                    if(forgotPasswordResult.data){
+                                    _loginState.value = LoginState.ResetSuccess("Check your email for password reset instructions")
+                                    Log.d("LoginViewModel", "ResetPassword: Reset successful")
+                                //}
+                                    }
+                                is Result.failure -> {
+                                    _loginState.value = LoginState.ResetProblem("An error occurred while resetting password")
+                                    Log.d("LoginViewModel", "ResetPassword: Reset failed")
+                                }
+                            }
+                        }
+                    }
+                    is Result.failure -> {
+                        _loginState.value = LoginState.ResetProblem("Email does not exist in our database")
+                        Log.d("LoginViewModel", "ResetPassword: Email check failed")
+                    }
                 }
+
             } catch (e: Exception) {
                 _loginState.value = LoginState.ResetProblem(e.message ?: "An unknown error occurred")
-                _loginState.value = LoginState.Loading //reset stanja
+                Log.e("LoginViewModel", "ResetPassword: Exception occurred", e)
             }
         }
     }
+
 
 }
 

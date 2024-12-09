@@ -1,7 +1,9 @@
 package praksa.unravel.talksy.ui.register
 
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -49,8 +51,8 @@ class RegisterFragment : Fragment() {
             val email = binding.registerET2.text.toString()
             val phone = binding.registerET3.text.toString()
             val password = binding.registerET4.text.toString()
-
-            viewModel.startRegistration(email, password, username, /*"+38761898989"*/phone, requireActivity())
+                                                // +387 62 232323  +387 62 121212   +387 62 343434
+            viewModel.startRegistration(email, password, username, "+38762121212"/*phone*/, requireActivity())
         }
 
         binding.registerTV4.setOnClickListener {
@@ -87,21 +89,30 @@ class RegisterFragment : Fragment() {
 
 
     private fun facebook(){
+        Log.d("RegisterFragment"," odmahNaPocetku")
         val callbackManager = CallbackManager.Factory.create()
         val loginButton = LoginButton(requireContext())
         loginButton.setPermissions("email", "public_profile")
 
+        Log.d("RegisterFragment","callbackManager je $callbackManager")
+        Log.d("RegisterFragment","loginButton je $loginButton")
+
+
         loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
             override fun onSuccess(loginResult: LoginResult) {
+                Log.d(TAG, "facebook:onSuccess:$loginResult")
                 val accessToken = loginResult.accessToken
                 viewModel.loginWithFacebook(accessToken)
             }
 
             override fun onCancel() {
+                Log.d(TAG, "facebook:onCancel")
                 ToastUtils.showCustomToast(requireContext(), "Facebook login canceled")
             }
 
             override fun onError(error: FacebookException) {
+                Log.d(TAG, "facebook:onError", error)
+                Log.d("RegisterFragment"," onErrorFacebookLogin")
                 ToastUtils.showCustomToast(
                     requireContext(),
                     "Facebook login failed: ${error.message}"
@@ -120,7 +131,6 @@ class RegisterFragment : Fragment() {
                 .requestEmail()
                 .build()
         )
-
         val signInIntent = googleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }

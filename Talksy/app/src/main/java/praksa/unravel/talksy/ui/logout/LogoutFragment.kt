@@ -5,10 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import praksa.unravel.talksy.R
+import praksa.unravel.talksy.utils.ToastUtils
 
 class LogoutFragment : Fragment() {
 
@@ -32,20 +34,22 @@ class LogoutFragment : Fragment() {
             logoutUser()
         }
     }
-    /*  public override fun onStart() {
-          super.onStart()
-          // Check if user is signed in (non-null) and update UI accordingly.
-          val currentUser = firebaseAuth.currentUser
-          if (currentUser != null) {
-              //...
-          }
-      }*/
 
     private fun logoutUser() {
         firebaseAuth.signOut()
 
         // Navigate back to the login screen
         findNavController().navigate(R.id.action_logout_to_loginFragment)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        if (currentUser != null) {
+            ToastUtils.showCustomToast(requireContext(),"User with this email ${currentUser.email} is logged in")
+        }else
+            ToastUtils.showCustomToast(requireContext(), "User is not logged in")
     }
 }
 
