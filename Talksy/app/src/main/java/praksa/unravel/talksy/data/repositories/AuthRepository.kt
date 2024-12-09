@@ -31,7 +31,6 @@ class AuthRepository(
             .whereEqualTo("email", email)
             .get()
             .addOnSuccessListener { snapshot ->
-//                cont.resume(Result.success(!snapshot.isEmpty))
                 if (!snapshot.isEmpty) {
                     cont.resume(Result.success(true)) // Email postoji
                 } else {
@@ -164,11 +163,6 @@ class AuthRepository(
                                 cont.resume(Result.failure(Throwable("ISPRAVI MEEE E E E ")))
                             }
                         }
-//                        addUserToDatabase(userData).onSuccess {
-//                            cont.resume(Result.success(true))
-//                        }.onFailure { error ->
-//                            cont.resume(Result.failure(error))
-//                        }
                     }
                 }else {
                     cont.resume(Result.failure(Exception("Facebook login failed")))
@@ -205,11 +199,7 @@ class AuthRepository(
                                 cont.resume(Result.failure(Throwable("ISPRAVI MEEEEEEEEEEE")))
                             }
                         }
-//                        databaseResult.onSuccess {
-//                            cont.resume(Result.success(true))
-//                        }.onFailure { error ->
-//                            cont.resume(Result.failure(error))
-//                        }
+
                     }
                 } else {
                     cont.resume(Result.failure(Exception("Google login failed")))

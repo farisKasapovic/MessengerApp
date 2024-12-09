@@ -148,90 +148,31 @@ class LoginFragment : Fragment() {
 
 
         lifecycleScope.launchWhenStarted {
-            viewModel.loginState.collectLatest{ state->
-                when(state){
+            viewModel.loginState.collectLatest { state ->
+                when (state) {
 
                     is LoginState.Success -> {
                         ToastUtils.showCustomToast(requireContext(), state.message)
                         findNavController().navigate(R.id.action_loginFragment_to_logout)
                     }
+
                     is LoginState.Error -> {
-                        ToastUtils.showCustomToast(requireContext(),state.errorMessage)
+                        ToastUtils.showCustomToast(requireContext(), state.errorMessage)
                     }
+
                     is LoginState.ResetSuccess -> {
-                        ToastUtils.showCustomToast(requireContext(),state.resetMessage)
+                        ToastUtils.showCustomToast(requireContext(), state.resetMessage)
                     }
+
                     is LoginState.ResetProblem -> {
-                        ToastUtils.showCustomToast(requireContext(),state.resetProblem)
+                        ToastUtils.showCustomToast(requireContext(), state.resetProblem)
                     }
+
                     else -> Unit
 
                 }
             }
         }
-
-         /*   viewLifecycleOwner.lifecycleScope.launch {
-           // repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Collect errorMessage
-                viewModel.errorMessage.collect { errorMessage ->
-                    errorMessage?.let {
-                        ToastUtils.showCustomToast(requireContext(), it /*errorMessage*/)
-                    }
-             //   }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            //repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Collect loginSuccess
-                viewModel.loginSuccess.collect { success ->
-                    if (success) {
-                        ToastUtils.showCustomToast(requireContext(), "Login successful!")
-                        findNavController().navigate(R.id.action_loginFragment_to_logout)
-                    }
-              //  }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            //repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Collect resetSuccess
-                viewModel.resetSuccess.collect { success ->
-                    if (success) {
-                        ToastUtils.showCustomToast(requireContext(), "Checkche your email for password reset instructions")
-                    }
-              //  }
-            }
-        }*/
-
-
-
-
-
-        /*
-        viewModel.loginSuccess.observe(viewLifecycleOwner) { success ->
-            if (success) {
-                ToastUtils.showCustomToast(requireContext(),"Login successful!")
-                findNavController().navigate(R.id.action_loginFragment_to_logout)
-            }
-        }
-
-        viewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
-            if (errorMessage != null) {
-                Toast.makeText(
-                    requireContext(),
-                    "$errorMessage",
-                    Toast.LENGTH_SHORT
-                ).show()
-                Log.w("LoginFragment", "signInWithEmail:failure: $errorMessage")
-            }
-        }
-
-        viewModel.resetSuccess.observe(viewLifecycleOwner){success ->
-            if(success){
-                ToastUtils.showCustomToast(requireContext(),"Check your email")
-            }
-        }*/
 
     }
 

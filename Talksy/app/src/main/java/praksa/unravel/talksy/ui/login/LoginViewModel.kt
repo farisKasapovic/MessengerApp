@@ -1,8 +1,6 @@
 package praksa.unravel.talksy.ui.signin
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.facebook.AccessToken
@@ -17,7 +15,6 @@ import praksa.unravel.talksy.domain.usecase.LoginWithFacebookUseCase
 import praksa.unravel.talksy.domain.usecase.LoginWithGoogleUseCase
 import praksa.unravel.talksy.domain.usecase.ForgotPasswordUseCase
 import praksa.unravel.talksy.ui.login.LoginState
-import praksa.unravel.talksy.ui.register.RegisterState
 import praksa.unravel.talksy.common.exception.Result
 import javax.inject.Inject
 
@@ -48,13 +45,6 @@ class LoginViewModel @Inject constructor(
                     _loginState.value = LoginState.Error( loginSuccess.error.message?: "An unknown error occurred")
                 }
             }
-//            try {
-//                val success = loginUserUseCase.invoke(email, password)
-//                _loginState.value = LoginState.Success("Login successful!")
-//            } catch (e: Exception) {
-//                //_loginSuccess.value = false
-//                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
-//            }
         }
     }
 

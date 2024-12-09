@@ -25,13 +25,8 @@ class CodeViewModel @Inject constructor(
     private val deleteUserUseCase: DeleteUserFromAuthUseCase
 ) : ViewModel() {
 
-
-
     private val _codeState = MutableStateFlow<CodeState>(CodeState.Idle)
     val codeState: StateFlow<CodeState> = _codeState
-
-
-
 
     fun verifyCodeAndRegister(
         code: String,
@@ -43,7 +38,6 @@ class CodeViewModel @Inject constructor(
     ) {
         if (verificationId.isNullOrEmpty() || code.length != 6) {
             Log.d("CodeViewModel","Uslo je u if uslove $verificationId i $code ")
-            //_errorMessage.value = "Invalid verification code."
             _codeState.value = CodeState.Error("Invalid verification code")
             return
         }
@@ -60,12 +54,6 @@ class CodeViewModel @Inject constructor(
                 // OVDJE JE PROBLEM GORE
                 val phoneLinked = linkPhoneNumberUseCase.invoke(credential)
                 Log.d("CodeViewModel","linkanje telefona $phoneLinked")
-//                if (!phoneLinked) {
-////                    _errorMessage.value = "Phone verification failed. Please try again."
-//                    _codeState.value = CodeState.Error("Phone verification failed. Please try again")
-//                    //dodati ovdje delete user
-//                    return@launch
-//                }
                 when(phoneLinked){
                     is Result.success -> {
                         val user = User(
@@ -82,22 +70,10 @@ class CodeViewModel @Inject constructor(
                     }
                 }
 
-
-
-//                val user = User(
-//                    email = email,
-//                    username = username,
-//                    phone = phoneNumber,
-//                    profilePicture = ""
-//                )
-//                addUserToDatabaseUseCase.invoke(user)
-
-//                _registrationComplete.value = true
                 _codeState.value = CodeState.Success("Phone number verified")
             } catch (e: Exception) {
-                //OVDJE DODAJ DA OBRISES
                 deleteUserUseCase.invoke()
-//                _errorMessage.value = e.message
+
                 _codeState.value = CodeState.Error(e.message?: "An error occurred")
             }
         }

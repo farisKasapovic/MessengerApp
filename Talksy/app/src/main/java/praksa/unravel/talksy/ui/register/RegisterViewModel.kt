@@ -44,7 +44,8 @@ class RegisterViewModel @Inject constructor(
         activity: FragmentActivity
     ) {
         viewModelScope.launch {
-            val validationError = InputFieldValidator.validateInputs(email, password, username, phone)
+            val validationError =
+                InputFieldValidator.validateInputs(email, password, username, phone)
             if (validationError != null) {
                 Log.d("RegisterViewModel", "Uslo je u !=null validation error $validationError")
                 _registerState.emit(RegisterState.Failed(validationError)) // Emit error
@@ -58,7 +59,7 @@ class RegisterViewModel @Inject constructor(
             try {
                 val emailResult = checkEmailExistsUseCase.invoke(email)
                 Log.d("RegisterViewModel", "checkEmailExists $emailResult")
-                when(emailResult) {
+                when (emailResult) {
                     is Result.success -> {
                         if (emailResult.data) {
                             // Email već postoji
@@ -67,82 +68,35 @@ class RegisterViewModel @Inject constructor(
                             return@launch
                         }
                     }
+
                     else -> Unit
                 }
 
-                // skip ovo jer ne pozivam svoju metodu
-//                when(emailResult) { emailExists ->
-//                    if (emailExists) {
-//                        _registerState.emit(RegisterState.EmailAlreadyExists)
-//                        return@launch
-//                    }
-//                }.onFailure { error ->
-//                    _registerState.emit(RegisterState.Failed(error.message ?: "Error checking email existence"))
-//                    return@launch
-//                }
-
-
                 val usernameResult = checkUsernameExistsUseCase.invoke(username)
-                when(usernameResult){
+                when (usernameResult) {
                     is Result.success -> {
-                  if(usernameResult.data) {
+                        if (usernameResult.data) {
                             _registerState.emit(RegisterState.UsernameAlreadyExists)
                             Log.d("RegisterViewModel", "trebalo mi da emituj username:  $usernameResult")
                             return@launch
                         }
                     }
+
                     else -> Unit
                 }
-//                val usernameResult = checkUsernameExistsUseCase.invoke(email)
-//                usernameResult.onSuccess { usernameExists ->
-//                    if(usernameExists){
-//                        _registerState.emit(RegisterState.UsernameAlreadyExists)
-//                        return@launch
-//                    }
-//                }.onFailure { error->
-//                    _registerState.emit(RegisterState.Failed(error.message?: "Error checking username existence"))
-//                    return@launch
-//                }
 
                 val phoneResult = checkPhoneNumberExistsUseCase.invoke(phone)
-                when(phoneResult){
+                when (phoneResult) {
                     is Result.success -> {
-                        if(phoneResult.data) {
+                        if (phoneResult.data) {
                             _registerState.emit(RegisterState.PhoneNumberAlreadyExists)
-                            Log.d(
-                                "RegisterViewModel",
-                                "trebalo mi da emituj telefon:  $emailResult"
-                            )
+                            Log.d("RegisterViewModel", "trebalo mi da emituj telefon:  $emailResult")
                             return@launch
                         }
                     }
+
                     else -> Unit
                 }
-
-//                val phoneResult = checkPhoneNumberExistsUseCase.invoke(email)
-//                phoneResult.onSuccess { phoneExists ->
-//                    if(phoneExists){
-//                        _registerState.emit(RegisterState.PhoneNumberAlreadyExists)
-//                        return@launch
-//                    }
-//                }.onFailure { error ->
-//                    _registerState.emit(RegisterState.Failed(error.message?: "Error checking phone existence"))
-//                }
-
-
-//                if (checkEmailExistsUseCase.invoke(email)) {
-//                    _registerState.emit(RegisterState.EmailAlreadyExists)
-//                    return@launch
-//                }
-//
-//                if (checkUsernameExistsUseCase.invoke(username)) {
-//                    _registerState.emit(RegisterState.UsernameAlreadyExists)
-//                    return@launch
-//                }
-//                if (checkPhoneNumberExistsUseCase.invoke(phone)) {
-//                    _registerState.emit(RegisterState.PhoneNumberAlreadyExists)
-//                    return@launch
-//                }
 
                 sendVerificationCodeUseCase.invoke(
                     phone,
@@ -179,43 +133,31 @@ class RegisterViewModel @Inject constructor(
 
     fun loginWithFacebook(token: AccessToken) {
         viewModelScope.launch {
-            Log.d("RegisterViewModel"," USLO JE GDJE TREBA")
             val fbResult = loginWithFacebookUseCase.invoke(token)
-            when(fbResult){
+            when (fbResult) {
                 is Result.success -> {
-                    Log.d("RegisterViewModel"," USLO JE GDJE TREBA")
                     _registerState.emit(RegisterState.FacebookSuccess)
                     return@launch
                 }
                 is Result.failure -> {
-                    Log.d("RegisterViewModel"," USLO JE GDJE TREBA")
                     _registerState.emit(RegisterState.Failed("Facebook login failed"))
                 }
             }
 
 
-            }
-//            try {
-//                val success = loginWithFacebookUseCase.invoke(token)
-//                if (success) {
-//                    _registerState.emit(RegisterState.FacebookSuccess)
-//                } else {
-//                    _registerState.emit(RegisterState.Failed("Facebook login failed"))
-//                }
-//            } catch (e: Exception) {
-//                _registerState.emit(RegisterState.Failed(e.message ?: "Facebook login error"))
-//            }
+        }
 
     }
 
     fun loginWithGoogle(account: GoogleSignInAccount) {
         viewModelScope.launch {
             val googleResult = loginWithGoogleUseCase.invoke(account)
-            when(googleResult){
+            when (googleResult) {
                 is Result.success -> {
                     _registerState.emit(RegisterState.GoogleSuccess)
                     return@launch
                 }
+
                 is Result.failure -> {
                     _registerState.emit(RegisterState.Failed("Google login failed"))
                 }
