@@ -1,4 +1,4 @@
-package praksa.unravel.talksy.common.exception
+package praksa.unravel.talksy.common.result
 
 sealed class Result <out T> {
     data class success<out T>(val data: T) : Result<T>()

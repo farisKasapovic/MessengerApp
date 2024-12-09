@@ -49,10 +49,24 @@
         android:name="praksa.unravel.talksy.ui.auth.CodeFragment"
         android:label="fragment_code"
         tools:layout="@layout/fragment_code" >
-
         <action
             android:id="@+id/action_codeFragment_to_logout"
             app:destination="@id/logout" />
+        <argument
+            android:name="verificationId"
+            app:argType="string" />
+        <argument
+            android:name="phone"
+            app:argType="string" />
+        <argument
+            android:name="username"
+            app:argType="string" />
+        <argument
+            android:name="email"
+            app:argType="string" />
+        <argument
+            android:name="password"
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/logout"

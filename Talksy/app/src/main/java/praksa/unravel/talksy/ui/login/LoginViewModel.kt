@@ -15,7 +15,7 @@ import praksa.unravel.talksy.domain.usecase.LoginWithFacebookUseCase
 import praksa.unravel.talksy.domain.usecase.LoginWithGoogleUseCase
 import praksa.unravel.talksy.domain.usecase.ForgotPasswordUseCase
 import praksa.unravel.talksy.ui.login.LoginState
-import praksa.unravel.talksy.common.exception.Result
+import praksa.unravel.talksy.common.result.Result
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,32 +48,60 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun loginWithFacebook(token:AccessToken){
+//    fun loginWithFacebook(token:AccessToken){
+//        viewModelScope.launch {
+//            try {
+//                val success = loginWithFacebookUseCase.invoke(token)
+//                _loginState.value = LoginState.Success("Facebook login successful!")
+//            } catch (e: Exception) {
+//                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
+//            }
+//        }
+//    }
+
+    fun loginWithFacebook(token: AccessToken){
         viewModelScope.launch {
-            try {
-                val success = loginWithFacebookUseCase.invoke(token)
-                _loginState.value = LoginState.Success("Facebook login successful!")
-            } catch (e: Exception) {
-                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
+            val success = loginWithFacebookUseCase.invoke(token)
+            when (success) {
+                is Result.success -> {
+                    _loginState.value = LoginState.Success("Facebook login successful!")
+                }
+                is Result.failure -> {
+                    _loginState.value = LoginState.Error(success.error.message.toString()) // ...
+                }
             }
         }
     }
 
 
-    fun loginWithGoogle(account: GoogleSignInAccount) {
+//    fun loginWithGoogle(account: GoogleSignInAccount) {
+//        viewModelScope.launch {
+//            try {
+//                val success = loginWithGoogleUseCase.invoke(account)
+//                _loginState.value = LoginState.Success("Google login successful!")
+//            } catch (e: Exception) {
+//                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
+//            }
+//        }
+//    }
+
+    fun loginWithGoogle(account: GoogleSignInAccount){
         viewModelScope.launch {
-            try {
-                val success = loginWithGoogleUseCase.invoke(account)
-                _loginState.value = LoginState.Success("Google login successful!")
-            } catch (e: Exception) {
-                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
+            val success = loginWithGoogleUseCase.invoke(account)
+            when(success){
+                is Result.success -> {
+                    _loginState.value = LoginState.Success("Google login successful!")
+                }
+                is Result.failure -> {
+                    _loginState.value = LoginState.Error(success.error.message.toString())
+                }
             }
         }
     }
 
     fun resetPassword(email: String) {
         viewModelScope.launch {
-            try {
+           // try {
                 _loginState.value = LoginState.Loading
                 Log.d("LoginViewModel", "ResetPassword: State set to Loading")
 
@@ -107,10 +135,10 @@ class LoginViewModel @Inject constructor(
                     }
                 }
 
-            } catch (e: Exception) {
-                _loginState.value = LoginState.ResetProblem(e.message ?: "An unknown error occurred")
-                Log.e("LoginViewModel", "ResetPassword: Exception occurred", e)
-            }
+//            } catch (e: Exception) {
+//                _loginState.value = LoginState.ResetProblem(e.message ?: "An unknown error occurred")
+//                Log.e("LoginViewModel", "ResetPassword: Exception occurred", e)
+           // }
         }
     }
 

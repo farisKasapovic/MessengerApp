@@ -12,13 +12,16 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import praksa.unravel.talksy.model.User
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import praksa.unravel.talksy.common.exception.Result
+import praksa.unravel.talksy.common.result.Result
 
 
 class AuthRepository(
@@ -174,7 +177,7 @@ class AuthRepository(
     }
 
 
-    suspend fun loginWithGoogle(account: GoogleSignInAccount): Result<Boolean> = suspendCoroutine { cont ->
+    /*suspend fun loginWithGoogle(account: GoogleSignInAccount): Result<Boolean> = suspendCoroutine { cont ->
         val credential = GoogleAuthProvider.getCredential(account.idToken, null)
         firebaseAuth.signInWithCredential(credential)
             .addOnSuccessListener { result ->
@@ -196,7 +199,7 @@ class AuthRepository(
                                 cont.resume(Result.success(true))
                             }
                             is Result.failure -> {
-                                cont.resume(Result.failure(Throwable("ISPRAVI MEEEEEEEEEEE")))
+                                cont.resume(Result.failure(Throwable("throw exception")))
                             }
                         }
 
@@ -208,7 +211,45 @@ class AuthRepository(
             .addOnFailureListener { exception ->
                 cont.resume(Result.failure(exception))
             }
+    }*/
+    //Verzija2 ?
+    suspend fun loginWithGoogle(account: GoogleSignInAccount): Result<Boolean> = suspendCoroutine { cont ->
+        val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+        firebaseAuth.signInWithCredential(credential)
+            .addOnSuccessListener { result ->
+                val user = result.user
+                if (user != null) {
+                    val userData = User(
+                        id = user.uid,
+                        username = user.displayName ?: "No name",
+                        email = user.email ?: "No email",
+                        phone = "",
+                        profilePicture = user.photoUrl?.toString() ?: "No picture"
+                    )
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val databaseResult = addUserToDatabase(userData)
+
+                        withContext(Dispatchers.Main) {
+                            when (databaseResult) {
+                                is Result.success -> {
+                                    cont.resume(Result.success(true))
+                                }
+                                is Result.failure -> {
+                                    cont.resume(Result.failure(Throwable("Database operation failed")))
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    cont.resume(Result.failure(Exception("Google login failed")))
+                }
+            }
+            .addOnFailureListener { exception ->
+                cont.resume(Result.failure(exception))
+            }
     }
+
 
 
     suspend fun loginUserWithEmail(email: String, password: String): Result<Boolean> =

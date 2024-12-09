@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
@@ -33,6 +34,12 @@ class LogoutFragment : Fragment() {
         logoutButton.setOnClickListener {
             logoutUser()
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Back navigation X
+            }
+        })
     }
 
     private fun logoutUser() {
@@ -48,8 +55,18 @@ class LogoutFragment : Fragment() {
 
         if (currentUser != null) {
             ToastUtils.showCustomToast(requireContext(),"User with this email ${currentUser.email} is logged in")
-        }else
+        } else
             ToastUtils.showCustomToast(requireContext(), "User is not logged in")
     }
 }
+
+// Screen
+// 1. Edit profile -> (ime i prezime, slika,bio)   ->  Poslije Registracije
+//                                                 ->  Kasnije kada bude trebalo EditProfile
+// 2. MainScreen -> Meni, TabLayout, ViewPager, RecyclerView ....
+// 3.
+//
+//
+//
+
 

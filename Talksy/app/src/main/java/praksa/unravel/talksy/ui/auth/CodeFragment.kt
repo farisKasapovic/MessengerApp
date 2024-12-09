@@ -44,16 +44,22 @@ class CodeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Retrieving
-        val verificationId = arguments?.getString("verificationId")
-        val email = arguments?.getString("email")
-        val password = arguments?.getString("password")
-        val username = arguments?.getString("username")
-        val phone = arguments?.getString("phone")
+//        val verificationId = arguments?.getString("verificationId")
+//        val email = arguments?.getString("email")
+//        val password = arguments?.getString("password")
+//        val username = arguments?.getString("username")
+//        val phone = arguments?.getString("phone")
+        val args = CodeFragmentArgs.fromBundle(requireArguments())
+        val verificationId = args.verificationId
+        val email = args.email
+        val password = args.password
+        val username = args.username
+        val phone = args.phone
 
 
         Log.d("CodeFragment", "Your verification id is $verificationId")
         binding.tvDescription.text = "We've sent the code via SMS to $phone"
-        if (verificationId != null && email != null && password != null && username != null && phone != null) {
+        if (verificationId != null && email != null && password != null && username != null && phone != null) { // Always true, check later
             setupEditTexts(verificationId, email, password, username, phone)
         } else {
             Log.e("CodeFragment", "Verification ID is null")

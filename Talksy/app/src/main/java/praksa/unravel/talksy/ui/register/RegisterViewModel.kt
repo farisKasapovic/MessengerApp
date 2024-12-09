@@ -2,8 +2,6 @@ package praksa.unravel.talksy.ui.register
 
 import android.util.Log
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.facebook.AccessToken
@@ -13,11 +11,9 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import praksa.unravel.talksy.common.exception.Result
+import praksa.unravel.talksy.common.result.Result
 import praksa.unravel.talksy.domain.usecase.*
 import javax.inject.Inject
 
@@ -55,8 +51,8 @@ class RegisterViewModel @Inject constructor(
             Log.d("RegisterViewModel", "Proslo validationError je null $validationError")
             _registerState.emit(RegisterState.Loading)
 
-
-            try {
+           //Remove try  catch
+//            try {
                 val emailResult = checkEmailExistsUseCase.invoke(email)
                 Log.d("RegisterViewModel", "checkEmailExists $emailResult")
                 when (emailResult) {
@@ -125,9 +121,9 @@ class RegisterViewModel @Inject constructor(
                             }
                         }
                     })
-            } catch (e: Exception) {
-                _registerState.emit(RegisterState.Failed(e.message ?: "Unknown error"))
-            }
+//            } catch (e: Exception) {
+//                _registerState.emit(RegisterState.Failed(e.message ?: "Unknown error"))
+//            }
         }
     }
 

@@ -25,21 +25,21 @@ import kotlinx.coroutines.flow.collectLatest
 import praksa.unravel.talksy.R
 import praksa.unravel.talksy.databinding.FragmentRegisterBinding
 import praksa.unravel.talksy.utils.ToastUtils
-import java.util.regex.Pattern
 
-@Suppress("DEPRECATION")
 @AndroidEntryPoint
 class RegisterFragment : Fragment() {
 
     private val viewModel: RegisterViewModel by viewModels()
-    private lateinit var binding: FragmentRegisterBinding
-    private val RC_SIGN_IN = 9001 // Request code for Google Sign-In
+    private var _binding: FragmentRegisterBinding? = null
+
+    private val binding: FragmentRegisterBinding
+        get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_register, container, false)
+    ): View? {
+        _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_register, container, false)
         return binding.root
     }
 
@@ -51,8 +51,14 @@ class RegisterFragment : Fragment() {
             val email = binding.registerET2.text.toString()
             val phone = binding.registerET3.text.toString()
             val password = binding.registerET4.text.toString()
-                                                // +387 62 232323  +387 62 121212   +387 62 343434
-            viewModel.startRegistration(email, password, username, "+38762121212"/*phone*/, requireActivity())
+            // +387 62 232323  +387 62 121212   +387 62 343434
+            viewModel.startRegistration(
+                email,
+                password,
+                username,
+                "+38762343434"/*phone*/,
+                requireActivity()
+            )
         }
 
         binding.registerTV4.setOnClickListener {
@@ -88,14 +94,11 @@ class RegisterFragment : Fragment() {
     }
 
 
-    private fun facebook(){
-        Log.d("RegisterFragment"," odmahNaPocetku")
+    private fun facebook() {
         val callbackManager = CallbackManager.Factory.create()
         val loginButton = LoginButton(requireContext())
         loginButton.setPermissions("email", "public_profile")
 
-        Log.d("RegisterFragment","callbackManager je $callbackManager")
-        Log.d("RegisterFragment","loginButton je $loginButton")
 
 
         loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
@@ -112,7 +115,7 @@ class RegisterFragment : Fragment() {
 
             override fun onError(error: FacebookException) {
                 Log.d(TAG, "facebook:onError", error)
-                Log.d("RegisterFragment"," onErrorFacebookLogin")
+                Log.d("RegisterFragment", " onErrorFacebookLogin")
                 ToastUtils.showCustomToast(
                     requireContext(),
                     "Facebook login failed: ${error.message}"
@@ -123,7 +126,7 @@ class RegisterFragment : Fragment() {
         loginButton.performClick()
     }
 
-    private fun google(){
+    private fun google() {
         val googleSignInClient = GoogleSignIn.getClient(
             requireActivity(),
             GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -141,41 +144,66 @@ class RegisterFragment : Fragment() {
             viewModel.registerState.collectLatest { state ->
                 when (state) {
                     is RegisterState.EmailAlreadyExists -> {
-                        ToastUtils.showCustomToast(requireContext(),"Email already exists")
+                        ToastUtils.showCustomToast(requireContext(), "Email already exists")
                     }
+
                     is RegisterState.UsernameAlreadyExists -> {
-                        ToastUtils.showCustomToast(requireContext(),"Username already exists.")
+                        ToastUtils.showCustomToast(requireContext(), "Username already exists.")
                     }
+
                     is RegisterState.PhoneNumberAlreadyExists -> {
-                        ToastUtils.showCustomToast(requireContext(),"Phone number already exists.")
+                        ToastUtils.showCustomToast(requireContext(), "Phone number already exists.")
                     }
-                    is RegisterState.VerificationIdSuccess ->{
+
+                    is RegisterState.VerificationIdSuccess -> {
                         navigateToCodeFragment(state.verificationId)
                     }
-                    is RegisterState.FacebookSuccess ->{
+
+                    is RegisterState.FacebookSuccess -> {
                         findNavController().navigate(R.id.action_registerFragment_to_logout)
                     }
+
                     is RegisterState.GoogleSuccess -> {
                         findNavController().navigate(R.id.action_registerFragment_to_logout)
                     }
+
                     is RegisterState.Failed -> {
-                        ToastUtils.showCustomToast(requireContext(),state.errorMessage)
-                    }else -> Unit  // without RegisterState.Loading
+                        ToastUtils.showCustomToast(requireContext(), state.errorMessage)
                     }
+
+                    else -> Unit  // without RegisterState.Loading
                 }
             }
         }
+    }
+
+//    private fun navigateToCodeFragment(verificationId: String) {
+//        val bundle = Bundle().apply {
+//            putString("verificationId", verificationId)
+//            putString("phone", binding.registerET3.text.toString())
+//            putString("username", binding.registerET1.text.toString())
+//            putString("email", binding.registerET2.text.toString())
+//            putString("password", binding.registerET4.text.toString())
+//        }
+//        findNavController().navigate(R.id.action_registerFragment_to_codeFragment, bundle)
+//    }
 
     private fun navigateToCodeFragment(verificationId: String) {
-        val bundle = Bundle().apply {
-            putString("verificationId", verificationId)
-            putString("phone", binding.registerET3.text.toString())
-            putString("username", binding.registerET1.text.toString())
-            putString("email", binding.registerET2.text.toString())
-            putString("password", binding.registerET4.text.toString())
-        }
-        findNavController().navigate(R.id.action_registerFragment_to_codeFragment, bundle)
+        // Instead of bundle we use this metod
+        val action = RegisterFragmentDirections.actionRegisterFragmentToCodeFragment(
+            verificationId = verificationId,
+            phone = binding.registerET3.text.toString(),
+            username = binding.registerET1.text.toString(),
+            email = binding.registerET2.text.toString(),
+            password = binding.registerET4.text.toString()
+        )
+        findNavController().navigate(action)
     }
 
+
+    companion object {
+        private val RC_SIGN_IN = 9001 // Request code for Google Sign-In
     }
+
+}
 

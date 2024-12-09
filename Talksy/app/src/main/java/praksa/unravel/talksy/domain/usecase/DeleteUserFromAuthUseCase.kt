@@ -1,8 +1,9 @@
 package praksa.unravel.talksy.domain.usecases
 
 import praksa.unravel.talksy.data.repositories.AuthRepository
+import javax.inject.Inject
 
-class DeleteUserFromAuthUseCase(private val authRepository: AuthRepository) {
+class DeleteUserFromAuthUseCase @Inject constructor(private val authRepository: AuthRepository) {
 
     suspend fun invoke() {
         try {

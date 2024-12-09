@@ -14,7 +14,7 @@ import praksa.unravel.talksy.domain.usecase.RegisterUserInAuthUseCase
 import praksa.unravel.talksy.domain.usecase.VerifyPhoneNumberWithCodeUseCase
 import praksa.unravel.talksy.domain.usecases.DeleteUserFromAuthUseCase
 import praksa.unravel.talksy.model.User
-import praksa.unravel.talksy.common.exception.Result
+import praksa.unravel.talksy.common.result.Result
 import javax.inject.Inject
 @HiltViewModel
 class CodeViewModel @Inject constructor(
@@ -73,7 +73,6 @@ class CodeViewModel @Inject constructor(
                 _codeState.value = CodeState.Success("Phone number verified")
             } catch (e: Exception) {
                 deleteUserUseCase.invoke()
-
                 _codeState.value = CodeState.Error(e.message?: "An error occurred")
             }
         }
