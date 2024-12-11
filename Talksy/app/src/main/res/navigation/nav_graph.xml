@@ -26,6 +26,9 @@
         <action
             android:id="@+id/action_loginFragment_to_logout"
             app:destination="@id/logout" />
+        <action
+            android:id="@+id/action_loginFragment_to_logout2"
+            app:destination="@id/logout" />
     </fragment>
 
     <fragment
@@ -77,4 +80,34 @@
             android:id="@+id/action_logout_to_loginFragment"
             app:destination="@id/loginFragment" />
     </fragment>
+
+    <!-- Chats Fragment -->
+    <fragment
+        android:id="@+id/chatsFragment"
+        android:name="praksa.unravel.talksy.main.ui.chats.ChatsFragment"
+        android:label="Chats"
+        tools:layout="@layout/chats_fragment" />
+
+    <!-- Premium Fragment -->
+    <fragment
+        android:id="@+id/premiumFragment"
+        android:name="praksa.unravel.talksy.main.ui.premium.PremiumFragment"
+        android:label="Premium"
+        tools:layout="@layout/premium_fragment" />
+
+    <!-- Contacts Fragment -->
+    <fragment
+        android:id="@+id/contactsFragment"
+        android:name="praksa.unravel.talksy.main.ui.contacts.ContactsFragment"
+        android:label="Contacts"
+        tools:layout="@layout/contacts_fragment" />
+
+    <!-- Settings Fragment -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="praksa.unravel.talksy.main.ui.settings.SettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/settings_fragment" />
+
+
 </navigation>

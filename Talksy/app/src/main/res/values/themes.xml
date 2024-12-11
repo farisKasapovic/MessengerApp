@@ -43,6 +43,20 @@
             <item name="android:background">@drawable/et_code_border</item>
         </style>
 
+    <style name="customTabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabIndicatorColor">@color/blueBtn</item>
+        <item name="tabIndicatorHeight">2dp</item>
+        <item name="tabPaddingStart">12dp</item>
+        <item name="tabPaddingEnd">12dp</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:dividerPadding">3dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/icons</item>
+        <item name="android:divider">@android:color/black</item>
+        <item name="tabBackground">?attr/selectableItemBackground</item>
+        <item name="tabSelectedTextColor">@color/blueBtn</item>
+    </style>
+
 
 
 

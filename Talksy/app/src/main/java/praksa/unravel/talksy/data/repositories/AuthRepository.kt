@@ -15,8 +15,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import praksa.unravel.talksy.common.asFlow
 import praksa.unravel.talksy.model.User
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
@@ -28,6 +33,16 @@ class AuthRepository(
     private val firebaseAuth: FirebaseAuth,
     private val db: FirebaseFirestore
 ) {
+
+//    suspend fun checkEmailExists(email:String): Result<Boolean> =
+//        db.collection("Users")
+//            .whereEqualTo("email",email)
+//            .get()
+//            .asFlow()
+//            .map {!it.isEmpty }
+//            .map { Result.success(it) }
+//            .catch { Result.failure(Throwable(" mIsTaKeEmAiLlk"))}
+//            .first()
 
     suspend fun checkEmailExists(email: String): Result<Boolean> = suspendCoroutine { cont ->
         db.collection("Users")
@@ -45,6 +60,16 @@ class AuthRepository(
             }
     }
 
+//    suspend fun checkUsernameExists(username:String): Result<Boolean> =
+//        db.collection("Users")
+//            .whereEqualTo("username",username)
+//            .get()
+//            .asFlow()
+//            .map { !it.isEmpty }
+//            .map { Result.success(it) }
+//            .catch { Result.failure(it) }
+//            .first()
+
     suspend fun checkUsernameExists(username: String): Result<Boolean> = suspendCoroutine { cont ->
         db.collection("Users")
             .whereEqualTo("username", username)
@@ -57,6 +82,15 @@ class AuthRepository(
             }
     }
 
+//    suspend fun checkPhoneNumberExists(phone:String):Result<Boolean> =
+//        db.collection("Users")
+//            .whereEqualTo("phone",phone)
+//            .get()
+//            .asFlow()
+//            .map { !it.isEmpty }
+//            .map { Result.success(it) }
+//            .catch { Result.failure(it) }
+//            .first()
     suspend fun checkPhoneNumberExists(phone: String): Result<Boolean> = suspendCoroutine { cont ->
         db.collection("Users")
             .whereEqualTo("phone", phone)

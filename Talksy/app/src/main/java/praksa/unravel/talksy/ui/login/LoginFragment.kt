@@ -123,6 +123,10 @@ class LoginFragment : Fragment() {
             viewModel.resetPassword(binding.loginET1.text.toString())
         }
 
+        binding.loginTV1.setOnClickListener{
+            findNavController().navigate(R.id.action_loginFragment_to_logout)
+        }
+
 
         observeViewModel()
     }

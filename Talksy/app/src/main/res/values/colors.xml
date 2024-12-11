@@ -9,4 +9,7 @@
     <color name="blueBtn">#0E64D2</color>
     <color name="signUp">#160062</color>
     <color name="login">#2F89FC</color>
+    <color name="icons">#838383</color>
+    <color name="lightGray">#D3D3D3</color>
+    <color name="blueText">#0E64D2</color>
 </resources>
