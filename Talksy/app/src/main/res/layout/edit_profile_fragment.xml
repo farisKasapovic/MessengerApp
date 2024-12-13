@@ -17,7 +17,6 @@
         android:textStyle="bold"
         android:layout_marginTop="18dp"
         android:layout_marginStart="18dp"
-
         />
     <TextView
         android:id="@+id/DoneTV"
@@ -27,7 +26,7 @@
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/EditProfileTV"
-        android:textColor="@color/blueBtn"
+        android:textColor="@color/blueText"
         android:layout_marginEnd="16dp"
         android:textStyle="bold"
         />
@@ -39,7 +38,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/EditProfileTV"
         android:layout_marginTop="32dp"
-        android:background="@color/icons"
+        android:background="@drawable/circular_image"
+        android:scaleType="centerCrop"
         />
     <TextView
         android:id="@+id/addNewPhotoTV"
@@ -123,6 +123,7 @@
         />
 
     <TextView
+        android:id="@+id/phoneNumberTV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
@@ -130,6 +131,95 @@
         android:layout_marginHorizontal="18dp"
         android:layout_marginTop="32dp"
         android:text="@string/phone_number"
+        android:background="@color/linearBackground"
+        android:padding="10dp"
+        android:textSize="12sp"
+        />
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/phoneNumberTV"
+        android:layout_marginHorizontal="18dp"
+        android:background="@color/linearBackground"
+        android:padding="10dp"
+        android:orientation="horizontal"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+98 911 682 8684"
+            android:textColor="@color/black"
+            android:layout_weight="1"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/change"
+            android:textColor="@color/blueText"
+            android:textStyle="bold"
+            />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/usernameTV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/linearLayout1"
+        android:layout_marginHorizontal="18dp"
+        android:textSize="12sp"
+        android:padding="10dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/username"
+        android:background="@color/linearBackground"
+        />
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/usernameTV"
+        android:background="@color/linearBackground"
+        android:padding="10dp"
+        android:orientation="horizontal"
+        android:layout_marginHorizontal="18dp"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/mojtabatn"
+            android:textColor="@color/black"
+            android:layout_weight="1"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/change"
+            android:textColor="@color/blueText"
+            android:textStyle="bold"
+            />
+
+    </LinearLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/log_out"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/linearLayout2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginHorizontal="18dp"
+        android:textColor="@color/red"
+        android:textAllCaps="false"
         />
     
 

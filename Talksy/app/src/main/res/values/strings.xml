@@ -32,7 +32,6 @@
     <string name="didn_t_get_the_code_resend_code">Didn’t get the code? Resend code</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="_0">0</string>
-
     <string name="facebook_app_id">2004446756686613</string>
     <string name="fb_login_protocol_scheme">fb2004446756686613</string>
     <string name="facebook_client_token">4eb1db06218a38f0eb2a6509a6a55846</string>
@@ -59,6 +58,26 @@
     <string name="bio">Bio</string>
     <string name="add_your_bio">Add your bio</string>
     <string name="phone_number">Phone number</string>
+    <string name="change">Change</string>
+    <string name="mojtabatn">mojtabatn</string>
+    <string name="log_out">Log out</string>
+    <string name="account">Account</string>
+    <string name="edit">Edit</string>
+    <string name="my_stories">My stories</string>
+    <string name="wallet">Wallet</string>
+    <string name="recent_calls">Recent Calls</string>
+    <string name="devices">Devices</string>
+    <string name="chat_folders">Chat folders</string>
+    <string name="notifications_and_sound">Notifications and Sound</string>
+    <string name="privacy_and_security">Privacy and Security</string>
+    <string name="data_and_storage">Data and Storage</string>
+    <string name="notifications">Notifications</string>
+    <string name="posts">Posts</string>
+    <string name="media">Media</string>
+    <string name="files">Files</string>
+    <string name="voice">Voice</string>
+    <string name="links">Links</string>
+    <string name="gifs">GIFs</string>
 
 
 </resources>

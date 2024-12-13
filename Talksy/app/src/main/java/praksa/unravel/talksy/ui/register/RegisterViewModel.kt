@@ -12,10 +12,16 @@ import com.google.firebase.auth.PhoneAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.common.result.Result
 import praksa.unravel.talksy.domain.usecase.*
 import javax.inject.Inject
+import kotlin.math.log
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
@@ -40,124 +46,172 @@ class RegisterViewModel @Inject constructor(
         activity: FragmentActivity
     ) {
         viewModelScope.launch {
+            // Validate inputs first
             val validationError =
                 InputFieldValidator.validateInputs(email, password, username, phone)
             if (validationError != null) {
-                Log.d("RegisterViewModel", "Uslo je u !=null validation error $validationError")
-                _registerState.emit(RegisterState.Failed(validationError)) // Emit error
+                Log.d("RegisterViewModel", "Validation error: $validationError")
+                _registerState.emit(RegisterState.Failed(validationError))
                 return@launch
             }
 
-            Log.d("RegisterViewModel", "Proslo validationError je null $validationError")
             _registerState.emit(RegisterState.Loading)
 
-           //Remove try  catch
-//            try {
-                val emailResult = checkEmailExistsUseCase.invoke(email)
-                Log.d("RegisterViewModel", "checkEmailExists $emailResult")
-                when (emailResult) {
-                    is Result.success -> {
-                        if (emailResult.data) {
-                            // Email već postoji
-                            Log.d("RegisterViewModel", "Email already exists: ${emailResult.data}")
-                            _registerState.emit(RegisterState.EmailAlreadyExists)
-                            return@launch
-                        }
-                    }
-
-                    else -> Unit
-                }
-
-                val usernameResult = checkUsernameExistsUseCase.invoke(username)
-                when (usernameResult) {
-                    is Result.success -> {
-                        if (usernameResult.data) {
-                            _registerState.emit(RegisterState.UsernameAlreadyExists)
-                            Log.d("RegisterViewModel", "trebalo mi da emituj username:  $usernameResult")
-                            return@launch
-                        }
-                    }
-
-                    else -> Unit
-                }
-
-                val phoneResult = checkPhoneNumberExistsUseCase.invoke(phone)
-                when (phoneResult) {
-                    is Result.success -> {
-                        if (phoneResult.data) {
-                            _registerState.emit(RegisterState.PhoneNumberAlreadyExists)
-                            Log.d("RegisterViewModel", "trebalo mi da emituj telefon:  $emailResult")
-                            return@launch
-                        }
-                    }
-
-                    else -> Unit
-                }
-
-                sendVerificationCodeUseCase.invoke(
-                    phone,
-                    activity,
-                    object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                        override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                            // Success
-                        }
-
-                        override fun onVerificationFailed(e: FirebaseException) {
-                            viewModelScope.launch {
-                                _registerState.emit(RegisterState.Failed("Verification failed: ${e.message}"))
-                            }
-                        }
-
-                        override fun onCodeSent(
-                            verificationId: String,
-                            token: PhoneAuthProvider.ForceResendingToken
-                        ) {
-                            viewModelScope.launch {
-                                _registerState.emit(
-                                    RegisterState.VerificationIdSuccess(
-                                        verificationId
-                                    )
-                                )
-                            }
-                        }
-                    })
-//            } catch (e: Exception) {
-//                _registerState.emit(RegisterState.Failed(e.message ?: "Unknown error"))
+//            combine(
+//                checkEmailExistsUseCase(email),
+//                checkUsernameExistsUseCase(username),
+//                checkPhoneNumberExistsUseCase(phone)
+//            ) { emailExists, usernameExists, phoneExists ->
+//                val doesEmailExist = when (emailExists) {
+//                    is Result.Failure -> {
+//                        _registerState.emit(RegisterState.Failed("Error checking email"))
+//                        return@combine false
+//                    }
+//                    is Result.Success -> emailExists.data
+//                }
+//
+//                val doesUsernameExist = when (usernameExists) {
+//                    is Result.Failure -> {
+//                        _registerState.emit(RegisterState.Failed("Error checking username"))
+//                        return@combine false
+//                    }
+//                    is Result.Success -> usernameExists.data
+//                }
+//
+//                val doesPhoneExist = when (phoneExists) {
+//                    is Result.Failure -> {
+//                        _registerState.emit(RegisterState.Failed("Error checking phone number"))
+//                        return@combine false
+//                    }
+//                    is Result.Success -> phoneExists.data
+//                }
+//
+//                // If any of the checks indicate existence, emit a failure state
+//                if (doesEmailExist || doesUsernameExist || doesPhoneExist) {
+//                    Log.d("RVM","values of $doesUsernameExist and $doesEmailExist")
+//                    _registerState.emit(
+//                        RegisterState.Failed(
+//                            when {
+//                                doesEmailExist -> "Email already exists"
+//                                doesUsernameExist -> "Username already exists"
+//                                doesPhoneExist -> "Phone number already exists"
+//                                else -> "Validation failed"
+//                            }
+//                        )
+//                    )
+//                } else {
+//                    // All checks passed, proceed to the next state
+//                    _registerState.emit(RegisterState.Loading)
+//                }
 //            }
-        }
-    }
 
-    fun loginWithFacebook(token: AccessToken) {
-        viewModelScope.launch {
-            val fbResult = loginWithFacebookUseCase.invoke(token)
-            when (fbResult) {
-                is Result.success -> {
-                    _registerState.emit(RegisterState.FacebookSuccess)
+
+
+
+
+                val emailExists = checkEmailExistsUseCase(email).first().let { result ->
+                    when (result) {
+                        is Result.Success -> result.data
+                        is Result.Failure -> {
+                            _registerState.emit(RegisterState.Failed("Error checking email: ${result.error.message}"))
+                            return@launch
+                        }
+                    }
+                }
+                if (emailExists) {
+                    _registerState.emit(RegisterState.EmailAlreadyExists)
                     return@launch
                 }
-                is Result.failure -> {
-                    _registerState.emit(RegisterState.Failed("Facebook login failed"))
-                }
-            }
 
+                val usernameExists = checkUsernameExistsUseCase(username).first().let { result ->
+                    when (result) {
+                        is Result.Success -> result.data
+                        is Result.Failure -> {
+                            _registerState.emit(RegisterState.Failed("Error checking username: ${result.error.message}"))
+                            return@launch
+                        }
+                    }
+                }
+                if (usernameExists) {
+                    _registerState.emit(RegisterState.UsernameAlreadyExists)
+                    return@launch
+                }
+
+                val phoneExists = checkPhoneNumberExistsUseCase(phone).first().let { result ->
+                    when (result) {
+                        is Result.Success -> result.data
+                        is Result.Failure -> {
+                            _registerState.emit(RegisterState.Failed("Error checking phone number: ${result.error.message}"))
+                            return@launch
+                        }
+                    }
+                }
+                if (phoneExists) {
+                    _registerState.emit(RegisterState.PhoneNumberAlreadyExists)
+                    return@launch
+                }
+
+
+            sendVerificationCodeUseCase.invoke(
+                phone,
+                activity,
+                object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                    override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                        Log.d("RegisterViewModel", "Verification completed")
+                    }
+
+                    override fun onVerificationFailed(e: FirebaseException) {
+                        viewModelScope.launch {
+                            _registerState.emit(RegisterState.Failed("Verification failed: ${e.message}"))
+                        }
+                    }
+
+                    override fun onCodeSent(
+                        verificationId: String,
+                        token: PhoneAuthProvider.ForceResendingToken
+                    ) {
+                        viewModelScope.launch {
+                            _registerState.emit(RegisterState.VerificationIdSuccess(verificationId))
+                        }
+                    }
+                }
+            )
 
         }
+    }
+    
+    fun loginWithFacebook(token: AccessToken) {
+        viewModelScope.launch {
+            loginWithFacebookUseCase(token)
+                .collectLatest { fbResult ->
+                    when (fbResult) {
+                        is Result.Success -> {
+                            _registerState.emit(RegisterState.FacebookSuccess)
+                        }
 
+                        is Result.Failure -> {
+                            _registerState.emit(RegisterState.Failed("Facebook login failed: ${fbResult.error.message}"))
+                        }
+                    }
+                }
+        }
     }
 
     fun loginWithGoogle(account: GoogleSignInAccount) {
         viewModelScope.launch {
-            val googleResult = loginWithGoogleUseCase.invoke(account)
-            when (googleResult) {
-                is Result.success -> {
-                    _registerState.emit(RegisterState.GoogleSuccess)
-                    return@launch
-                }
+            loginWithGoogleUseCase(account).collectLatest { googleResult ->
+                when (googleResult) {
+                    is Result.Success -> {
+                        _registerState.emit(RegisterState.GoogleSuccess)
+                    }
 
-                is Result.failure -> {
-                    _registerState.emit(RegisterState.Failed("Google login failed"))
+                    is Result.Failure -> {
+                        _registerState.emit(RegisterState.Failed("Google login failed: ${googleResult.error.message}"))
+                    }
                 }
             }
         }
     }
+
+
 }

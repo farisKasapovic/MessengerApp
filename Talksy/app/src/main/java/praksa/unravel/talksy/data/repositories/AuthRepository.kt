@@ -12,20 +12,15 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import praksa.unravel.talksy.common.asFlow
+import praksa.unravel.talksy.common.mapSuccess
 import praksa.unravel.talksy.model.User
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import praksa.unravel.talksy.common.result.Result
 
 
@@ -34,74 +29,31 @@ class AuthRepository(
     private val db: FirebaseFirestore
 ) {
 
-//    suspend fun checkEmailExists(email:String): Result<Boolean> =
-//        db.collection("Users")
-//            .whereEqualTo("email",email)
-//            .get()
-//            .asFlow()
-//            .map {!it.isEmpty }
-//            .map { Result.success(it) }
-//            .catch { Result.failure(Throwable(" mIsTaKeEmAiLlk"))}
-//            .first()
 
-    suspend fun checkEmailExists(email: String): Result<Boolean> = suspendCoroutine { cont ->
+    fun checkEmailExists(email: String): Flow<Result<Boolean>> =
         db.collection("Users")
             .whereEqualTo("email", email)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                if (!snapshot.isEmpty) {
-                    cont.resume(Result.success(true)) // Email postoji
-                } else {
-                    cont.resume(Result.failure(Exception("Email not found"))) // Email ne postoji
-                }
+            .get()  //  executes the query and return result as a QuerySnapshot
+            .asFlow()
+            .mapSuccess { data ->
+                Log.d("AuthRepository", "sta je ovo ovdje $data")
+                !data.isEmpty
             }
-            .addOnFailureListener { exception ->
-                cont.resume(Result.failure(exception))
-            }
-    }
 
-//    suspend fun checkUsernameExists(username:String): Result<Boolean> =
-//        db.collection("Users")
-//            .whereEqualTo("username",username)
-//            .get()
-//            .asFlow()
-//            .map { !it.isEmpty }
-//            .map { Result.success(it) }
-//            .catch { Result.failure(it) }
-//            .first()
-
-    suspend fun checkUsernameExists(username: String): Result<Boolean> = suspendCoroutine { cont ->
+    fun checkUsernameExists(username: String): Flow<Result<Boolean>> =
         db.collection("Users")
             .whereEqualTo("username", username)
             .get()
-            .addOnSuccessListener { snapshot ->
-                cont.resume(Result.success(!snapshot.isEmpty))
-            }
-            .addOnFailureListener { exception ->
-                cont.resume(Result.failure(exception))
-            }
-    }
+            .asFlow()
+            .mapSuccess { !it.isEmpty }
 
-//    suspend fun checkPhoneNumberExists(phone:String):Result<Boolean> =
-//        db.collection("Users")
-//            .whereEqualTo("phone",phone)
-//            .get()
-//            .asFlow()
-//            .map { !it.isEmpty }
-//            .map { Result.success(it) }
-//            .catch { Result.failure(it) }
-//            .first()
-    suspend fun checkPhoneNumberExists(phone: String): Result<Boolean> = suspendCoroutine { cont ->
+
+    fun checkPhoneNumberExists(phone: String): Flow<Result<Boolean>> =
         db.collection("Users")
             .whereEqualTo("phone", phone)
             .get()
-            .addOnSuccessListener { snapshot ->
-                cont.resume(Result.success(!snapshot.isEmpty))
-            }
-            .addOnFailureListener { exception ->
-                cont.resume(Result.failure(exception))
-            }
-    }
+            .asFlow()
+            .mapSuccess { !it.isEmpty }
 
     fun sendVerificationCode(
         phoneNumber: String,
@@ -117,185 +69,133 @@ class AuthRepository(
         PhoneAuthProvider.verifyPhoneNumber(options)
     }
 
-    suspend fun verifyPhoneNumberWithCode(
+
+    fun verifyPhoneNumberWithCode(
         verificationId: String,
         code: String
-    ): Result<PhoneAuthCredential> = suspendCoroutine { cont ->
+    ): Flow<Result<PhoneAuthCredential>> = flow {
         try {
             val credential = PhoneAuthProvider.getCredential(verificationId, code)
-            cont.resume(Result.success(credential))
+            emit(Result.Success(credential))
         } catch (e: Exception) {
-            cont.resume(Result.failure(e))
+            emit(Result.Failure(e))
         }
     }
 
-    suspend fun registerUserInAuth(email: String, password: String): Result<String> =
-        suspendCoroutine { cont ->
-            firebaseAuth.createUserWithEmailAndPassword(email, password)
-                .addOnSuccessListener { result ->
-                    val userId = result.user?.uid ?: ""
-                    cont.resume(Result.success(userId))
-                }
-                .addOnFailureListener { exception ->
-                    cont.resume(Result.failure(exception))
-                }
-        }
 
-    suspend fun deleteUser(): Result<Unit> = suspendCoroutine { cont ->
-        val currentUser = firebaseAuth.currentUser
-        if (currentUser != null) {
-            currentUser.delete()
-                .addOnSuccessListener { cont.resume(Result.success(Unit)) }
-                .addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
-        } else {
-            cont.resume(Result.failure(Exception("No user is logged in")))
-        }
+    fun registerUserInAuth(email: String, password: String): Flow<Result<String>> {
+        return firebaseAuth.createUserWithEmailAndPassword(email, password)
+            .asFlow()
+            .mapSuccess { authResult ->
+                authResult.user?.uid ?: ""
+            }
     }
- /// dodaoj ovdje nekako id
-    suspend fun addUserToDatabase(user: User): Result<Unit> = suspendCoroutine { cont ->
+
+
+    fun deleteUser(): Flow<Result<Unit>> {
+        return firebaseAuth.currentUser?.delete()
+            ?.asFlow()
+            ?.mapSuccess { Unit }
+            ?: flowOf(Result.Failure(Exception("No user is logged in")))    // without if -> else
+    }
+
+
+    fun addUserToDatabase(user: User): Flow<Result<Unit>> =
         db.collection("Users")
             .add(user)
-            .addOnSuccessListener { cont.resume(Result.success(Unit)) }
-            .addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
+            .asFlow()
+            .mapSuccess {
+                Unit //Nothing
+            }
+
+
+    fun linkPhoneNumber(credential: PhoneAuthCredential): Flow<Result<Boolean>> {
+        return firebaseAuth.currentUser?.linkWithCredential(credential)
+            ?.asFlow()
+            ?.mapSuccess { true }
+            ?: flowOf(Result.Failure(Exception("No user is logged in")))
     }
 
-    suspend fun linkPhoneNumber(credential: PhoneAuthCredential): Result<Boolean> =
-        suspendCoroutine { cont ->
-            firebaseAuth.currentUser?.linkWithCredential(credential)
-                ?.addOnSuccessListener { cont.resume(Result.success(true)) }
-                ?.addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
-                ?: cont.resume(Result.failure(Exception("No user is logged in")))
-        }
 
-    suspend fun linkEmailAndPassword(email: String, password: String): Result<Boolean> =
-        suspendCoroutine { cont ->
-            val credential = EmailAuthProvider.getCredential(email, password)
-            firebaseAuth.currentUser?.linkWithCredential(credential)
-                ?.addOnSuccessListener { cont.resume(Result.success(true)) }
-                ?.addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
-                ?: cont.resume(Result.failure(Exception("No user is logged in")))
-        }
+    fun linkEmailAndPassword(email: String, password: String): Flow<Result<Boolean>> {
+        val credential = EmailAuthProvider.getCredential(email, password)
+        return firebaseAuth.currentUser?.linkWithCredential(credential)
+            ?.asFlow()
+            ?.mapSuccess { true }
+            ?: flowOf(Result.Failure(Exception("No user is logged in")))
+    }
 
-    suspend fun loginWithFacebook(token: AccessToken): Result<Boolean> = suspendCoroutine { cont ->
+
+    fun loginWithFacebook(token: AccessToken): Flow<Result<Boolean>> {
         val credential = FacebookAuthProvider.getCredential(token.token)
-        Log.d("AuthRepository","U loginWithFacebook $credential")
-        firebaseAuth.signInWithCredential(credential)
-            .addOnSuccessListener { result ->
-                val user = result.user
-                if (user != null) {
-                    val userData = User(
-                        email = user.email ?: "No email",
-                        username = user.displayName ?: "No name",
-                        phone = "",
-                        profilePicture = user.photoUrl?.toString() ?: "No picture",
-                        id = user.uid
-                    )
-                    GlobalScope.launch {
-                        val databaseResult = addUserToDatabase(userData)
-                        when(databaseResult){
-                            is Result.success -> {
-                                cont.resume(Result.success(true))
-                            }
-                            is Result.failure -> {
-                                cont.resume(Result.failure(Throwable("ISPRAVI MEEE E E E ")))
-                            }
-                        }
+        return firebaseAuth.signInWithCredential(credential)
+            .asFlow() // Pretvara Task<AuthResult> u Flow<Result<AuthResult>>
+            .flatMapConcat { result ->
+                when (result) {
+                    is Result.Success -> {
+                        val user = result.data.user ?: return@flatMapConcat flowOf(
+                            Result.Failure(
+                                Exception("Facebook login failed: No user returned")
+                            )
+                        )
+                        val userData = User(
+                            email = user.email ?: "No email",
+                            username = user.displayName ?: "No name",
+                            phone = "",
+                            profilePicture = user.photoUrl?.toString() ?: "No picture",
+                            id = user.uid
+                        )
+                        addUserToDatabase(userData)
+                            .mapSuccess { true }
                     }
-                }else {
-                    cont.resume(Result.failure(Exception("Facebook login failed")))
+
+                    is Result.Failure -> flowOf(Result.Failure(result.error))
                 }
             }
-            .addOnFailureListener { exception ->
-                cont.resume(Result.failure(exception))
-            }
+            .catch { e -> emit(Result.Failure(e)) }
     }
 
 
-    /*suspend fun loginWithGoogle(account: GoogleSignInAccount): Result<Boolean> = suspendCoroutine { cont ->
+    fun loginWithGoogle(account: GoogleSignInAccount): Flow<Result<Boolean>> {
         val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-        firebaseAuth.signInWithCredential(credential)
-            .addOnSuccessListener { result ->
-                val user = result.user
-                if (user != null) {
-                    val userData = User(
-                        id = user.uid,
-                        username = user.displayName ?: "No name",
-                        email = user.email ?: "No email",
-                        phone = "",
-                        profilePicture = user.photoUrl?.toString() ?: "No picture"
-                    )
-
-                    // Launch a coroutine for the suspend function
-                    GlobalScope.launch {
-                        val databaseResult = addUserToDatabase(userData)
-                        when(databaseResult){
-                            is Result.success -> {
-                                cont.resume(Result.success(true))
-                            }
-                            is Result.failure -> {
-                                cont.resume(Result.failure(Throwable("throw exception")))
-                            }
-                        }
-
+        return firebaseAuth.signInWithCredential(credential)
+            .asFlow()
+            .flatMapConcat { result ->
+                when (result) {
+                    is Result.Success -> {
+                        val user = result.data.user ?: return@flatMapConcat flowOf(
+                            Result.Failure(
+                                Exception("Google login failed: No user returned")
+                            )
+                        )
+                        val userData = User(
+                            email = user.email ?: "No email",
+                            username = user.displayName ?: "No name",
+                            phone = "",
+                            profilePicture = user.photoUrl?.toString() ?: "No picture",
+                            id = user.uid
+                        )
+                        addUserToDatabase(userData)
+                            .mapSuccess { true }
                     }
-                } else {
-                    cont.resume(Result.failure(Exception("Google login failed")))
+
+                    is Result.Failure -> flowOf(Result.Failure(result.error))
                 }
             }
-            .addOnFailureListener { exception ->
-                cont.resume(Result.failure(exception))
-            }
-    }*/
-    //Verzija2 ?
-    suspend fun loginWithGoogle(account: GoogleSignInAccount): Result<Boolean> = suspendCoroutine { cont ->
-        val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-        firebaseAuth.signInWithCredential(credential)
-            .addOnSuccessListener { result ->
-                val user = result.user
-                if (user != null) {
-                    val userData = User(
-                        id = user.uid,
-                        username = user.displayName ?: "No name",
-                        email = user.email ?: "No email",
-                        phone = "",
-                        profilePicture = user.photoUrl?.toString() ?: "No picture"
-                    )
-
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val databaseResult = addUserToDatabase(userData)
-
-                        withContext(Dispatchers.Main) {
-                            when (databaseResult) {
-                                is Result.success -> {
-                                    cont.resume(Result.success(true))
-                                }
-                                is Result.failure -> {
-                                    cont.resume(Result.failure(Throwable("Database operation failed")))
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    cont.resume(Result.failure(Exception("Google login failed")))
-                }
-            }
-            .addOnFailureListener { exception ->
-                cont.resume(Result.failure(exception))
-            }
+            .catch { e -> emit(Result.Failure(e)) }
     }
 
 
+    fun loginUserWithEmail(email: String, password: String): Flow<Result<Boolean>> {
+        return firebaseAuth.signInWithEmailAndPassword(email, password)
+            .asFlow()
+            .mapSuccess { true }
+    }
 
-    suspend fun loginUserWithEmail(email: String, password: String): Result<Boolean> =
-        suspendCoroutine { cont ->
-            firebaseAuth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener { cont.resume(Result.success(true)) }
-                .addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
-        }
 
-    suspend fun sendPasswordResetEmail(email: String): Result<Unit> = suspendCoroutine { cont ->
-        firebaseAuth.sendPasswordResetEmail(email)
-            .addOnSuccessListener { cont.resume(Result.success(Unit)) }
-            .addOnFailureListener { exception -> cont.resume(Result.failure(exception)) }
+    fun sendPasswordResetEmail(email: String): Flow<Result<Unit>> {
+        return firebaseAuth.sendPasswordResetEmail(email)
+            .asFlow()
+            .mapSuccess { Unit }
     }
 }

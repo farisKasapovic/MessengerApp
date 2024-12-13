@@ -11,5 +11,7 @@
     <color name="login">#2F89FC</color>
     <color name="icons">#838383</color>
     <color name="lightGray">#D3D3D3</color>
-    <color name="blueText">#0E64D2</color>
+    <color name="blueText">#3290EC</color>
+    <color name="linearBackground">#d7dadb</color>
+    <color name="red">#FF0000</color>
 </resources>

@@ -8,6 +8,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.domain.usecase.CheckEmailExistsUseCase
 import praksa.unravel.talksy.domain.usecase.LoginUserUseCase
@@ -32,115 +33,102 @@ class LoginViewModel @Inject constructor(
     val loginState: StateFlow<LoginState> = _loginState
 
 
-    // Login with email and password
-    fun loginUser(email: String, password: String) {
-        viewModelScope.launch {
-            val loginSuccess = loginUserUseCase.invoke(email,password)
-            Log.d("LoginViewModel", "u loginUser funkciiji $loginSuccess")
-            when(loginSuccess){
-                is Result.success -> {
-                    _loginState.value = LoginState.Success("Login successful!")
-                }
-                is Result.failure -> {
-                    _loginState.value = LoginState.Error( loginSuccess.error.message?: "An unknown error occurred")
-                }
-            }
-        }
-    }
 
-//    fun loginWithFacebook(token:AccessToken){
-//        viewModelScope.launch {
-//            try {
-//                val success = loginWithFacebookUseCase.invoke(token)
-//                _loginState.value = LoginState.Success("Facebook login successful!")
-//            } catch (e: Exception) {
-//                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
-//            }
-//        }
-//    }
 
-    fun loginWithFacebook(token: AccessToken){
+    fun loginUser(email: String,password: String) {
         viewModelScope.launch {
-            val success = loginWithFacebookUseCase.invoke(token)
-            when (success) {
-                is Result.success -> {
-                    _loginState.value = LoginState.Success("Facebook login successful!")
-                }
-                is Result.failure -> {
-                    _loginState.value = LoginState.Error(success.error.message.toString()) // ...
+            loginUserUseCase(email, password).collectLatest { loginResult ->
+                when(loginResult){
+                    is Result.Success -> {
+                        _loginState.value = LoginState.Success("Login successful!")
+                    }
+                    is Result.Failure -> {
+                        _loginState.value = LoginState.Error(loginResult.error.message ?: "Error occurred")
+                    }
                 }
             }
         }
     }
 
 
-//    fun loginWithGoogle(account: GoogleSignInAccount) {
-//        viewModelScope.launch {
-//            try {
-//                val success = loginWithGoogleUseCase.invoke(account)
-//                _loginState.value = LoginState.Success("Google login successful!")
-//            } catch (e: Exception) {
-//                _loginState.value = LoginState.Error(e.message ?: "An unknown error occurred")
-//            }
-//        }
-//    }
-
-    fun loginWithGoogle(account: GoogleSignInAccount){
+    fun loginWithFacebook(token: AccessToken) {
         viewModelScope.launch {
-            val success = loginWithGoogleUseCase.invoke(account)
-            when(success){
-                is Result.success -> {
-                    _loginState.value = LoginState.Success("Google login successful!")
-                }
-                is Result.failure -> {
-                    _loginState.value = LoginState.Error(success.error.message.toString())
+            loginWithFacebookUseCase(token).collectLatest { fbResult ->
+                when (fbResult) {
+                    is Result.Success -> {
+                        _loginState.emit(LoginState.Success("Facebook login successful!"))
+                    }
+
+                    is Result.Failure -> {
+                        _loginState.emit(LoginState.Error("Facebook login failed: ${fbResult.error.message}"))
+                    }
                 }
             }
         }
     }
+
+    fun loginWithGoogle(account: GoogleSignInAccount) {
+        viewModelScope.launch {
+            loginWithGoogleUseCase(account).collectLatest { googleResult ->
+                when (googleResult) {
+                    is Result.Success -> {
+                        _loginState.emit(LoginState.Success("Google login successful!"))
+                    }
+
+                    is Result.Failure -> {
+                        _loginState.emit(LoginState.Error("Google login failed: ${googleResult.error.message}"))
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+
+
 
     fun resetPassword(email: String) {
         viewModelScope.launch {
-           // try {
-                _loginState.value = LoginState.Loading
-                Log.d("LoginViewModel", "ResetPassword: State set to Loading")
+            _loginState.value = LoginState.Loading
+            Log.d("LoginViewModel", "ResetPassword: State set to Loading")
 
-                val emailExistsResult = checkEmailExistsUseCase.invoke(email)
-                Log.d("LoginViewModel", "ResetPassword: Email check result = $emailExistsResult")
-
-                when (emailExistsResult) {
-                    is Result.success -> {
-                        if (!emailExistsResult.data) {
-                            _loginState.value = LoginState.ResetProblem("Email does not exist in our database")
-                            Log.d("LoginViewModel", "ResetPassword: Email does not exist")
-                        } else {
-                            val forgotPasswordResult = forgotPasswordUseCase.invoke(email)
-                            when (forgotPasswordResult) {
-                                is Result.success -> {
-//                                    if(forgotPasswordResult.data){
-                                    _loginState.value = LoginState.ResetSuccess("Check your email for password reset instructions")
-                                    Log.d("LoginViewModel", "ResetPassword: Reset successful")
-                                //}
+            try {
+                checkEmailExistsUseCase(email).collect { emailExistsResult ->
+                    when (emailExistsResult) {
+                        is Result.Success -> {
+                            if (!emailExistsResult.data) {
+                                _loginState.value = LoginState.ResetProblem("Email does not exist in our database")
+                                Log.d("LoginViewModel", "ResetPassword: Email does not exist")
+                            } else {
+                                forgotPasswordUseCase(email).collect { forgotPasswordResult ->
+                                    when (forgotPasswordResult) {
+                                        is Result.Success -> {
+                                            _loginState.value = LoginState.ResetSuccess("Check your email for password reset instructions")
+                                            Log.d("LoginViewModel", "ResetPassword: Reset successful")
+                                        }
+                                        is Result.Failure -> {
+                                            _loginState.value = LoginState.ResetProblem("An error occurred while resetting password")
+                                            Log.d("LoginViewModel", "ResetPassword: Reset failed")
+                                        }
                                     }
-                                is Result.failure -> {
-                                    _loginState.value = LoginState.ResetProblem("An error occurred while resetting password")
-                                    Log.d("LoginViewModel", "ResetPassword: Reset failed")
                                 }
                             }
                         }
-                    }
-                    is Result.failure -> {
-                        _loginState.value = LoginState.ResetProblem("Email does not exist in our database")
-                        Log.d("LoginViewModel", "ResetPassword: Email check failed")
+                        is Result.Failure -> {
+                            _loginState.value = LoginState.ResetProblem("Email does not exist in our database")
+                            Log.d("LoginViewModel", "ResetPassword: Email check failed")
+                        }
                     }
                 }
-
-//            } catch (e: Exception) {
-//                _loginState.value = LoginState.ResetProblem(e.message ?: "An unknown error occurred")
-//                Log.e("LoginViewModel", "ResetPassword: Exception occurred", e)
-           // }
+            } catch (e: Exception) {
+                _loginState.value = LoginState.ResetProblem("An unexpected error occurred")
+                Log.d("LoginViewModel", "ResetPassword: Exception caught - ${e.message}")
+            }
         }
     }
+
 
 
 }

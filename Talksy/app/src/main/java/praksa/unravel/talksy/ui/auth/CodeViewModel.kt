@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.domain.usecase.AddUserToDatabaseUseCase
 import praksa.unravel.talksy.domain.usecase.LinkPhoneNumberUseCase
@@ -28,6 +29,7 @@ class CodeViewModel @Inject constructor(
     private val _codeState = MutableStateFlow<CodeState>(CodeState.Idle)
     val codeState: StateFlow<CodeState> = _codeState
 
+
     fun verifyCodeAndRegister(
         code: String,
         verificationId: String?,
@@ -37,7 +39,7 @@ class CodeViewModel @Inject constructor(
         phoneNumber: String
     ) {
         if (verificationId.isNullOrEmpty() || code.length != 6) {
-            Log.d("CodeViewModel","Uslo je u if uslove $verificationId i $code ")
+            Log.d("CodeViewModel", "Uslo je u if uslove $verificationId i $code")
             _codeState.value = CodeState.Error("Invalid verification code")
             return
         }
@@ -45,35 +47,72 @@ class CodeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _codeState.value = CodeState.Loading
-                Log.d("CodeViewModel","Uslo je u CodeViewModel $verificationId  i $code")
-                val credential = verifyPhoneNumberWithCodeUseCase(verificationId, code)
 
-                Log.d("CodeViewModel","vrijednost credentiala $credential")
-                val userId = registerUserInAuthUseCase.invoke(email, password)
-                Log.d("CodeViewModel", "vrijednost userId DA LI JE SPASEN $userId")
-                // OVDJE JE PROBLEM GORE
-                val phoneLinked = linkPhoneNumberUseCase.invoke(credential)
-                Log.d("CodeViewModel","linkanje telefona $phoneLinked")
-                when(phoneLinked){
-                    is Result.success -> {
-                        val user = User(
-                            email = email,
-                            username = username,
-                            phone = phoneNumber,
-                            profilePicture = ""
-                        )
-                        addUserToDatabaseUseCase.invoke(user)
-                    }
-                    is Result.failure -> {
-                        _codeState.value = CodeState.Error("Phone verification failed. Please try again")
-                        return@launch
+                // Verifikacija telefonskog broja
+                val credentialResult = verifyPhoneNumberWithCodeUseCase(verificationId, code)
+                credentialResult.collectLatest { credential ->
+                    when (credential) {
+                        is Result.Success -> {
+                            // Registracija korisnika
+                            registerUserInAuthUseCase(email, password).collectLatest { userResult ->
+                                when (userResult) {
+                                    is Result.Success -> {
+                                        // Linkovanje telefona
+                                        linkPhoneNumberUseCase(credential.data).collectLatest { phoneLinkResult ->
+                                            when (phoneLinkResult) {
+                                                is Result.Success -> {
+                                                    // Dodavanje korisnika u bazu
+                                                    val user = User(
+                                                        email = email,
+                                                        username = username,
+                                                        phone = phoneNumber,
+                                                        profilePicture = ""
+                                                    )
+                                                    addUserToDatabaseUseCase(user).collectLatest { dbResult ->
+                                                        when (dbResult) {
+                                                            is Result.Success -> {
+                                                                _codeState.value =
+                                                                    CodeState.Success("Phone number verified and user registered")
+                                                            }
+
+                                                            is Result.Failure -> {
+                                                                _codeState.value =
+                                                                    CodeState.Error("Failed to add user to database")
+                                                                deleteUserUseCase.invoke()
+                                                                return@collectLatest
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                is Result.Failure -> {
+                                                    _codeState.value =
+                                                        CodeState.Error("Phone verification failed")
+                                                    deleteUserUseCase.invoke()
+                                                    return@collectLatest
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    is Result.Failure -> {
+                                        _codeState.value =
+                                            CodeState.Error("Failed to register user")
+                                        return@collectLatest
+                                    }
+                                }
+                            }
+                        }
+
+                        is Result.Failure -> {
+                            _codeState.value = CodeState.Error("Invalid verification code")
+                            return@collectLatest
+                        }
                     }
                 }
-
-                _codeState.value = CodeState.Success("Phone number verified")
             } catch (e: Exception) {
                 deleteUserUseCase.invoke()
-                _codeState.value = CodeState.Error(e.message?: "An error occurred")
+                _codeState.value = CodeState.Error(e.message ?: "An error occurred")
             }
         }
     }

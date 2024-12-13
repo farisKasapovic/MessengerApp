@@ -1,14 +1,12 @@
 package praksa.unravel.talksy.domain.usecase
 
+import kotlinx.coroutines.flow.Flow
 import praksa.unravel.talksy.data.repositories.AuthRepository
 import praksa.unravel.talksy.common.result.Result
 import javax.inject.Inject
 
 class CheckUsernameExistsUseCase @Inject constructor(private val repository: AuthRepository) {
-
-    suspend /*operator*/ fun invoke(username: String): Result<Boolean> {
+     operator fun invoke(username: String): Flow<Result<Boolean>>{
         return repository.checkUsernameExists(username)
     }
 }
-
-//Done

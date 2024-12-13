@@ -84,6 +84,8 @@
         android:textColorHint="@color/gray"
         android:textColor="@color/black"
         android:paddingVertical="@dimen/space_xs"
+        android:inputType="phone"
+        android:digits="+0123456789"
         />
     <EditText
         android:id="@+id/registerET4"

@@ -128,6 +128,7 @@ class LoginFragment : Fragment() {
         }
 
 
+
         observeViewModel()
     }
     //+phone number check

@@ -1,38 +1,57 @@
 package praksa.unravel.talksy.common
 
+import android.util.Log
 import com.google.android.gms.tasks.Task
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.mapLatest
+import praksa.unravel.talksy.common.result.Result
 
-fun <T>Task<T>.asFlow() = flow {
-    val sharedFlow: MutableSharedFlow<T> = MutableSharedFlow()
-    this@asFlow.addOnSuccessListener { sharedFlow.tryEmit(it) }
-    this@asFlow.addOnFailureListener { error(it.message.orEmpty()) }
-    sharedFlow.collectLatest { emit(it) }
+fun <T> Task<T>.asFlow() = callbackFlow<Result<T>> {
+
+    this@asFlow.addOnSuccessListener { result ->
+        val sendResult = trySend(Result.Success(result))
+        if (sendResult.isFailure) {
+            trySend(Result.Failure(sendResult.exceptionOrNull() ?: Throwable("Unknown error")))
+        }
+    }
+
+    this@asFlow.addOnFailureListener { exception ->
+        trySend(Result.Failure(exception))
+    }
+
+    awaitClose { /* leave empty */ }
 }
 
 
-/*žž
-*
- suspend fun checkEmailExists(email: String): Result<Boolean> =
-        db.collection("Users")
-            .whereEqualTo("email", email)
-            .get()
-            .asFlow()
-            .map { !it.isEmpty }
-            .map { Result.success(it) }
-            .catch { emit(Result.failure(it)) }
-            .first()
 
-    suspend fun checkUsernameExists(username: String): Result<Boolean> =
-        db.collection("Users")
-            .whereEqualTo("username", username)
-            .get()
-            .asFlow()
-            .map { !it.isEmpty }
-            .map { Result.success(it) }
-            .catch { emit(Result.failure(it)) }
-            .first()
-*
-* */
+
+fun <T, R> Flow<Result<T>>.mapSuccess(success: (data: T) -> R): Flow<Result<R>> {
+    Log.d("Task",success.toString())
+    return this.mapLatest { data ->
+        when(data) {
+            is Result.Failure -> Result.Failure(data.error)
+            is Result.Success -> Result.Success(success(data.data))
+        }
+    }
+}
+// ova ekstenzija mapira uspjesan rezultat iz jednog tipa T u drugi R
+
+fun <T, R: Throwable> Flow<Result<out T>>.mapError(errorData: (data: Throwable) -> R): Flow<Result<T>> {
+    return this.mapLatest { data ->
+        when(data) {
+            is Result.Failure -> Result.Failure(errorData(data.error))
+            is Result.Success -> Result.Success(data.data)
+        }
+    }
+}
+
+
+
+// Koristi se za kreiranje flowa koji emituje vijednosti iz callbackova
+// awaitClose signalizira zavrsetak emitovanja
+// Pretvara Task u Flow<Result<T>>
+
+
+

@@ -4,100 +4,31 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
     tools:context=".MainActivity">
 
-    <!-- Stories Section -->
-    <HorizontalScrollView
-        android:id="@+id/stories_section"
-        android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="16dp"
-        android:scrollbars="none"
+    <TextView
+        android:id="@+id/ContactsProfileTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <!-- Example Story Item -->
-            <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                 />
-
-            <!-- Add more story items as needed -->
-        </LinearLayout>
-    </HorizontalScrollView>
-
-    <!-- Chat List -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/chat_list"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@id/stories_section"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:text="@string/contacts"
+        android:textSize="24sp"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:layout_marginTop="18dp"
+        android:layout_marginStart="18dp"
         />
-
-    <!-- Bottom Navigation Bar -->
-    <LinearLayout
-        android:id="@+id/bottom_navigation"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:background="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <!-- Navigation Items -->
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-
-            android:contentDescription="@string/chats" />
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-
-            android:contentDescription="@string/contacts" />
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-
-            android:contentDescription="@string/settings" />
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:contentDescription="@string/premium" />
-    </LinearLayout>
-
-    <!-- Floating Button -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floating_action_button"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+    <ImageView
+        android:id="@+id/addContactIV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:src="@drawable/ic_add"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:tint="@color/icons"
+        app:layout_constraintTop_toTopOf="@id/ContactsProfileTV"
+        app:layout_constraintBottom_toBottomOf="@id/ContactsProfileTV"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp" />
+
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

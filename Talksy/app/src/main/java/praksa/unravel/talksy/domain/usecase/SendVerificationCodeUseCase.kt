@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 class SendVerificationCodeUseCase @Inject constructor(private val repository: AuthRepository) {
 
-    fun invoke(
+    operator fun invoke(
         phoneNumber: String,
         activity: FragmentActivity,
         callbacks : PhoneAuthProvider.OnVerificationStateChangedCallbacks
@@ -16,5 +16,3 @@ class SendVerificationCodeUseCase @Inject constructor(private val repository: Au
     }
 
 }
-
-//Done

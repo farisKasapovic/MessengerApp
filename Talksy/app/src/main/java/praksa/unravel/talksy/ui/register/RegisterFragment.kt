@@ -22,6 +22,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import praksa.unravel.talksy.R
 import praksa.unravel.talksy.databinding.FragmentRegisterBinding
 import praksa.unravel.talksy.utils.ToastUtils
@@ -56,7 +57,7 @@ class RegisterFragment : Fragment() {
                 email,
                 password,
                 username,
-                "+38762343434"/*phone*/,
+                phone, //phonenum
                 requireActivity()
             )
         }
@@ -71,6 +72,9 @@ class RegisterFragment : Fragment() {
 
         binding.registerBtn3.setOnClickListener {
             google()
+        }
+        binding.registerTV3.setOnClickListener{
+            findNavController().navigate(R.id.action_registerFragment_to_codeFragment)
         }
 
         observeViewModel()
@@ -140,7 +144,7 @@ class RegisterFragment : Fragment() {
 
 
     private fun observeViewModel() {
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             viewModel.registerState.collectLatest { state ->
                 when (state) {
                     is RegisterState.EmailAlreadyExists -> {
