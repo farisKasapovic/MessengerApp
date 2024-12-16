@@ -108,7 +108,6 @@ class RegisterViewModel @Inject constructor(
 
 
 
-
                 val emailExists = checkEmailExistsUseCase(email).first().let { result ->
                     when (result) {
                         is Result.Success -> result.data
@@ -136,6 +135,15 @@ class RegisterViewModel @Inject constructor(
                     _registerState.emit(RegisterState.UsernameAlreadyExists)
                     return@launch
                 }
+
+
+               checkPhoneNumberExistsUseCase(phone).collectLatest { result ->
+                   when(result){
+                       is Result.Failure -> _registerState.emit(RegisterState.Failed("Error checking phone number: ${result.error.message}"))
+                       is Result.Success -> TODO()
+                   }
+               }
+
 
                 val phoneExists = checkPhoneNumberExistsUseCase(phone).first().let { result ->
                     when (result) {
@@ -179,7 +187,7 @@ class RegisterViewModel @Inject constructor(
 
         }
     }
-    
+
     fun loginWithFacebook(token: AccessToken) {
         viewModelScope.launch {
             loginWithFacebookUseCase(token)

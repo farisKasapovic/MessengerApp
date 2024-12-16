@@ -78,6 +78,13 @@
     <string name="voice">Voice</string>
     <string name="links">Links</string>
     <string name="gifs">GIFs</string>
+    <string name="new_contact">New Contact</string>
+    <string name="create">Create</string>
+    <string name="add_your_phone_number">Add your phone number</string>
+    <string name="find_people_nearby">Find People Nearby</string>
+    <string name="invite_friends">Invite Friends</string>
+    <string name="contact_categories">Contact Categories</string>
+    <string name="add_new_contact">Add New Contact</string>
 
 
 </resources>

@@ -4,7 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="@color/lightGray"
+    >
 
     <TextView
         android:id="@+id/ContactsProfileTV"
@@ -23,12 +25,33 @@
         android:id="@+id/addContactIV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_add"
+        android:src="@drawable/add"
+        android:layout_marginEnd="68dp"
         app:tint="@color/icons"
         app:layout_constraintTop_toTopOf="@id/ContactsProfileTV"
         app:layout_constraintBottom_toBottomOf="@id/ContactsProfileTV"
         app:layout_constraintEnd_toEndOf="parent"
+        />
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@id/addContactIV"
+        app:layout_constraintBottom_toBottomOf="@id/addContactIV"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="24dp"
+        app:tint="@color/icons"
+        android:src="@drawable/loop"
+        />
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ContactsProfileTV"
+        android:background="@color/white"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
