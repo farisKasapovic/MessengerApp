@@ -58,11 +58,14 @@ class CodeViewModel @Inject constructor(
                                 when (userResult) {
                                     is Result.Success -> {
                                         // Linkovanje telefona
+                                        val userId = userResult.data // Firebase UID
+                                        Log.d("CodeViewModel","Vrijednost userId = $userId")
                                         linkPhoneNumberUseCase(credential.data).collectLatest { phoneLinkResult ->
                                             when (phoneLinkResult) {
                                                 is Result.Success -> {
                                                     // Dodavanje korisnika u bazu
                                                     val user = User(
+                                                        id= userId,
                                                         email = email,
                                                         username = username,
                                                         phone = phoneNumber,

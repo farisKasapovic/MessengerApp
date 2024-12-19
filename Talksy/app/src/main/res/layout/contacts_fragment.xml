@@ -6,8 +6,9 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity"
     android:background="@color/lightGray"
+    android:layout_margin="0dp"
     >
-
+<!--  https://www.youtube.com/watch?v=19E85PngufY&t=586s -->
     <TextView
         android:id="@+id/ContactsProfileTV"
         android:layout_width="wrap_content"
@@ -44,6 +45,7 @@
         />
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/contactRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"

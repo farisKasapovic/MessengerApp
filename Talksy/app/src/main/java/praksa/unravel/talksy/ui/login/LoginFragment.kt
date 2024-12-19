@@ -124,7 +124,7 @@ class LoginFragment : Fragment() {
         }
 
         binding.loginTV1.setOnClickListener{
-            findNavController().navigate(R.id.action_loginFragment_to_logout)
+            findNavController().navigate(R.id.action_loginFragment_to_chatsFragment)
         }
 
 
@@ -158,7 +158,7 @@ class LoginFragment : Fragment() {
 
                     is LoginState.Success -> {
                         ToastUtils.showCustomToast(requireContext(), state.message)
-                        findNavController().navigate(R.id.action_loginFragment_to_logout)
+                        findNavController().navigate(R.id.action_loginFragment_to_chatsFragment) //nije vise logout nego fragment chats
                     }
 
                     is LoginState.Error -> {

@@ -20,6 +20,9 @@ import praksa.unravel.talksy.domain.usecase.LoginUserUseCase
 import praksa.unravel.talksy.domain.usecase.LoginWithFacebookUseCase
 import praksa.unravel.talksy.domain.usecase.LoginWithGoogleUseCase
 import praksa.unravel.talksy.domain.usecase.ForgotPasswordUseCase
+import praksa.unravel.talksy.domain.usecase.GetUserInfoUseCase
+import praksa.unravel.talksy.domain.usecase.UpdateUserInfoUseCase
+import praksa.unravel.talksy.domain.usecase.UploadProfilePictureUseCase
 import praksa.unravel.talksy.domain.usecases.DeleteUserFromAuthUseCase
 import javax.inject.Singleton
 
@@ -112,5 +115,22 @@ object Module {
     fun provideDeleteUserFromAuthUseCase(authRepository: AuthRepository):DeleteUserFromAuthUseCase{
         return DeleteUserFromAuthUseCase(authRepository)
     }
+
+    @Provides
+    fun provideGetUserInfoUseCase(authRepository: AuthRepository): GetUserInfoUseCase {
+        return GetUserInfoUseCase(authRepository)
+    }
+
+    @Provides
+    fun provideUpdateUserInfoUseCase(authRepository: AuthRepository): UpdateUserInfoUseCase {
+        return UpdateUserInfoUseCase(authRepository)
+    }
+
+    @Provides
+    fun provideUploadProfilePictureUseCase(authRepository: AuthRepository): UploadProfilePictureUseCase {
+        return UploadProfilePictureUseCase(authRepository)
+    }
+
+
 
 }

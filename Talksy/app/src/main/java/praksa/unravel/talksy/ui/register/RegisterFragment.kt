@@ -32,14 +32,13 @@ class RegisterFragment : Fragment() {
 
     private val viewModel: RegisterViewModel by viewModels()
     private var _binding: FragmentRegisterBinding? = null
-
     private val binding: FragmentRegisterBinding
         get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_register, container, false)
         return binding.root
     }
@@ -164,11 +163,11 @@ class RegisterFragment : Fragment() {
                     }
 
                     is RegisterState.FacebookSuccess -> {
-                        findNavController().navigate(R.id.action_registerFragment_to_logout)
+                        findNavController().navigate(R.id.action_registerFragment_to_more_info)
                     }
 
                     is RegisterState.GoogleSuccess -> {
-                        findNavController().navigate(R.id.action_registerFragment_to_logout)
+                        findNavController().navigate(R.id.action_registerFragment_to_more_info)
                     }
 
                     is RegisterState.Failed -> {

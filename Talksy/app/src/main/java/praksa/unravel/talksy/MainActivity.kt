@@ -18,7 +18,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import org.checkerframework.common.subtyping.qual.Bottom
 import praksa.unravel.talksy.main.ui.chats.ChatsFragment
-import praksa.unravel.talksy.main.ui.contacts.ContactsFragment
 import praksa.unravel.talksy.main.ui.premium.PremiumFragment
 import praksa.unravel.talksy.main.ui.settings.SettingsFragment
 import praksa.unravel.talksy.ui.start.StartFragment
@@ -48,7 +47,7 @@ class MainActivity : AppCompatActivity() {
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.loginFragment, R.id.registerFragment,R.id.startFragment,R.id.codeFragment -> {
+                R.id.loginFragment, R.id.registerFragment,R.id.startFragment,R.id.codeFragment,R.id.more_info -> {
                     bottomNavigationView.visibility = android.view.View.GONE
                 }
                 else -> {
@@ -60,9 +59,27 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-    super.onActivityResult(requestCode, resultCode, data)
-}
 
     }
+
+//overridea gmail i to ...
+
+/////Problem sa update firestorea   -->  rijeseno (problem bio sa razlicitim user idovima  uid)
+//// Dodao contacts popupWindow
+////Dodati navigator da predje na fragment u MoreInfoFragmentu
+//Loading indikator.........
+////Provjeriti koju funkciju addContact pozivam
+
+
+// poslije registracije prve u moreInfo, mora kupiti informacije o korisniku a ne ovo mojtabatn
+// takodjer klikom na done idem na chats fragment...
+//// kada dodam sliku ona treba biti okrugkla e ne kvadrat
+
+
+//ako je korisnik logovan automatski ga prebaciti na chats fragment sa startfragmenta
+//
+
+// NewContact -> ako mi postavimo sliku u svuda se pojavljuje ta slika, ako ne postavimo sliku pojavljuje se ona koju je taj korisnik stavio/defaultna
+
+// last seen recently i to ....  SVAKI PUT KADA SE APP OTVORI
 

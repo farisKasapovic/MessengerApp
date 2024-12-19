@@ -84,6 +84,16 @@ dependencies {
     //Firestore
     implementation (libs.firebase.firestore)
 
+    //Firestorage
+    implementation(libs.firebase.storage)
+
+    // Glide
+    implementation ("com.github.bumptech.glide:glide:4.15.1")
+    ksp ("com.github.bumptech.glide:compiler:4.15.1")
+
+
+
+
 
 
 }

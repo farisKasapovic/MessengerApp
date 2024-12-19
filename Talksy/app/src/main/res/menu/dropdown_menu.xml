@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- res/menu/dropdown_menu.xml -->
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    >
     <item
         android:id="@+id/action_find_people"
-        android:title="@string/find_people_nearby" />
+        android:title="@string/find_people_nearby"
+        android:icon="@drawable/location"
+        android:iconTint="@color/blueText"
+        />
     <item
         android:id="@+id/action_invite_friends"
-        android:title="@string/invite_friends" />
-    <item
-        android:id="@+id/action_contact_categories"
-        android:title="@string/contact_categories" />
+        android:title="Invite friends"
+        android:icon="@drawable/invitefriends"
+        android:iconTint="@color/blueText"
+        />
+
     <item
         android:id="@+id/action_add_contact"
-        android:title="@string/add_new_contact" />
+        android:title="@string/add_new_contact"
+        android:icon="@drawable/add"
+        android:iconTint="@color/blueText"
+        />
 </menu>

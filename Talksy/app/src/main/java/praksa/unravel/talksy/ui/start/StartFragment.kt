@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import praksa.unravel.talksy.R
 import praksa.unravel.talksy.databinding.FragmentStartBinding
 
@@ -14,6 +16,7 @@ import praksa.unravel.talksy.databinding.FragmentStartBinding
 class StartFragment : Fragment() {
 
     lateinit var binding: FragmentStartBinding
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,8 +32,18 @@ class StartFragment : Fragment() {
         binding.continueBtn.setOnClickListener{
             findNavController().navigate(R.id.action_startFragment_to_loginFragment)
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+     val auth = FirebaseAuth.getInstance()
+        val currentUser=auth.currentUser
+        if(currentUser!=null){
+            findNavController().navigate(R.id.action_startFragment_to_chatsFragment)
+        }
 
     }
+
 }
 
 

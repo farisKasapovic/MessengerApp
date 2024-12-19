@@ -57,57 +57,6 @@ class RegisterViewModel @Inject constructor(
 
             _registerState.emit(RegisterState.Loading)
 
-//            combine(
-//                checkEmailExistsUseCase(email),
-//                checkUsernameExistsUseCase(username),
-//                checkPhoneNumberExistsUseCase(phone)
-//            ) { emailExists, usernameExists, phoneExists ->
-//                val doesEmailExist = when (emailExists) {
-//                    is Result.Failure -> {
-//                        _registerState.emit(RegisterState.Failed("Error checking email"))
-//                        return@combine false
-//                    }
-//                    is Result.Success -> emailExists.data
-//                }
-//
-//                val doesUsernameExist = when (usernameExists) {
-//                    is Result.Failure -> {
-//                        _registerState.emit(RegisterState.Failed("Error checking username"))
-//                        return@combine false
-//                    }
-//                    is Result.Success -> usernameExists.data
-//                }
-//
-//                val doesPhoneExist = when (phoneExists) {
-//                    is Result.Failure -> {
-//                        _registerState.emit(RegisterState.Failed("Error checking phone number"))
-//                        return@combine false
-//                    }
-//                    is Result.Success -> phoneExists.data
-//                }
-//
-//                // If any of the checks indicate existence, emit a failure state
-//                if (doesEmailExist || doesUsernameExist || doesPhoneExist) {
-//                    Log.d("RVM","values of $doesUsernameExist and $doesEmailExist")
-//                    _registerState.emit(
-//                        RegisterState.Failed(
-//                            when {
-//                                doesEmailExist -> "Email already exists"
-//                                doesUsernameExist -> "Username already exists"
-//                                doesPhoneExist -> "Phone number already exists"
-//                                else -> "Validation failed"
-//                            }
-//                        )
-//                    )
-//                } else {
-//                    // All checks passed, proceed to the next state
-//                    _registerState.emit(RegisterState.Loading)
-//                }
-//            }
-
-
-
-
                 val emailExists = checkEmailExistsUseCase(email).first().let { result ->
                     when (result) {
                         is Result.Success -> result.data
@@ -135,15 +84,6 @@ class RegisterViewModel @Inject constructor(
                     _registerState.emit(RegisterState.UsernameAlreadyExists)
                     return@launch
                 }
-
-
-               checkPhoneNumberExistsUseCase(phone).collectLatest { result ->
-                   when(result){
-                       is Result.Failure -> _registerState.emit(RegisterState.Failed("Error checking phone number: ${result.error.message}"))
-                       is Result.Success -> TODO()
-                   }
-               }
-
 
                 val phoneExists = checkPhoneNumberExistsUseCase(phone).first().let { result ->
                     when (result) {

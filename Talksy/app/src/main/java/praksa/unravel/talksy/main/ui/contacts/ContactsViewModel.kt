@@ -1,4 +1,57 @@
 package praksa.unravel.talksy.main.ui.contacts
 
-class ContactsViewModel {
+
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import praksa.unravel.talksy.main.domain.usecase.AddContactUseCase
+import praksa.unravel.talksy.main.domain.usecase.CheckUserExistsByPhone
+import praksa.unravel.talksy.main.domain.usecase.GetContactsUseCase
+import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
+import praksa.unravel.talksy.main.model.Contact
+import javax.inject.Inject
+
+
+@HiltViewModel
+class ContactsViewModel @Inject constructor(
+    private val getContactsUseCase: GetContactsUseCase,
+    private val getProfilePictureUrlUseCase: GetProfilePictureUrlUseCase
+) : ViewModel() {
+
+    private val _state = MutableStateFlow<ContactsState>(ContactsState.Loading)
+    val state: StateFlow<ContactsState> = _state
+
+    init {
+        fetchContacts()
+    }
+
+    fun fetchContacts() {
+        viewModelScope.launch {
+            _state.value = ContactsState.Loading
+            try {
+
+                val contacts = getContactsUseCase()
+                if (contacts.isEmpty()) {
+                    _state.value = ContactsState.Empty
+                } else {
+                    _state.value = ContactsState.Success(contacts)
+                }
+            } catch (e: Exception) {
+                _state.value = ContactsState.Error(e.message ?: "Greška pri dohvatanu kontakata")
+            }
+        }
+    }
+    suspend fun getProfilePictureUrl(userId: String): String? {
+        return try {
+            getProfilePictureUrlUseCase(userId)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+
 }

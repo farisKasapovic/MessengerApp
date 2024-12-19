@@ -1,5 +1,6 @@
 package praksa.unravel.talksy.data.repositories
 
+import android.net.Uri
 import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import com.facebook.AccessToken
@@ -12,16 +13,19 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.tasks.await
 import praksa.unravel.talksy.common.asFlow
 import praksa.unravel.talksy.common.mapSuccess
+import praksa.unravel.talksy.common.result.Result
 import praksa.unravel.talksy.model.User
 import java.util.concurrent.TimeUnit
-import praksa.unravel.talksy.common.result.Result
 
 
 class AuthRepository(
@@ -100,13 +104,23 @@ class AuthRepository(
     }
 
 
-    fun addUserToDatabase(user: User): Flow<Result<Unit>> =
-        db.collection("Users")
-            .add(user)
-            .asFlow()
-            .mapSuccess {
-                Unit //Nothing
-            }
+//    fun addUserToDatabase(user: User): Flow<Result<Unit>> =
+//        db.collection("Users")
+//            .add(user)
+//            .asFlow()
+//            .mapSuccess {
+//                Unit //Nothing
+//            }
+fun addUserToDatabase(user: User): Flow<Result<Unit>> {
+    val userId = firebaseAuth.currentUser?.uid ?: return flowOf(Result.Failure(Exception("User not logged in")))
+
+    return db.collection("Users")
+        .document(userId)  // Postavi UID kao ID dokumenta
+        .set(user)         // Postavi podatke korisnika
+        .asFlow()
+        .mapSuccess { Unit }  // Vraća uspešan rezultat
+}
+
 
 
     fun linkPhoneNumber(credential: PhoneAuthCredential): Flow<Result<Boolean>> {
@@ -187,6 +201,7 @@ class AuthRepository(
 
 
     fun loginUserWithEmail(email: String, password: String): Flow<Result<Boolean>> {
+        firebaseAuth.currentUser?.uid?.let { Log.d("AuthRepo", "vrijednost je $it ") }
         return firebaseAuth.signInWithEmailAndPassword(email, password)
             .asFlow()
             .mapSuccess { true }
@@ -198,4 +213,44 @@ class AuthRepository(
             .asFlow()
             .mapSuccess { Unit }
     }
+
+    // Novo
+    fun getUserData(): Flow<Result<User>> =
+        db.collection("Users").document(firebaseAuth.currentUser?.uid ?: "")
+            .get()
+            .asFlow()
+            .mapSuccess { snapshot -> snapshot.toObject(User::class.java) ?: User() }
+
+    fun updateUserData(user: User, firstName: String, lastName: String, bio: String): Flow<Result<Unit>> {
+
+
+        val userId = user.id.ifEmpty { firebaseAuth.currentUser?.uid ?: throw IllegalStateException("User not logged in") }
+
+
+        Log.d("AuthRepo","GRESKA: vrijednost userid $userId")
+        Log.d("AuthRepo","${user.id} and ${user.firstName} and ${user.lastName} and ${user.bio}")
+
+        return db.collection("Users").document(userId)
+            //.set(updates, SetOptions.merge())
+            .update("firstName",firstName,"lastName",lastName,"bio",bio)
+            .asFlow()
+            .mapSuccess { Unit }
+    }
+
+
+
+    fun uploadProfilePicture(uri: Uri): Flow<Result<String>> = flow {
+        try {
+            val storageRef = FirebaseStorage.getInstance().reference.child("profile_pictures/${firebaseAuth.currentUser?.uid ?: "unknown_user"}")
+            storageRef.putFile(uri).await()
+
+            val downloadUrl = storageRef.downloadUrl.await().toString()
+
+            emit(Result.Success(downloadUrl))
+        } catch (e: Exception) {
+            emit(Result.Failure(e))
+        }
+    }
+
+
 }
