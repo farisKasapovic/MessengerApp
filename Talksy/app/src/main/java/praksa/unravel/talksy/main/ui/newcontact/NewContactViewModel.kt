@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.main.domain.usecase.AddContactUseCase
-import praksa.unravel.talksy.main.domain.usecase.CheckUserExistsByPhone
+import praksa.unravel.talksy.main.domain.usecase.CheckUserExistsByPhoneOrUsername
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
 import praksa.unravel.talksy.main.model.Contact
 import javax.inject.Inject
@@ -16,16 +16,16 @@ import javax.inject.Inject
 @HiltViewModel
 class NewContactViewModel @Inject constructor(
     private val addContactUseCase: AddContactUseCase,
-    private val checkUserExistsByPhone: CheckUserExistsByPhone
+    private val checkUserExistsByPhoneOrUsername: CheckUserExistsByPhoneOrUsername
 ) : ViewModel() {
 
     private val _state = MutableLiveData<NewContactState>()
     val state: LiveData<NewContactState> = _state
 
 
-    fun addContact(contact: Contact,phoneNumber:String) {
+    fun addContact(contact: Contact,phoneNumber:String,username: String) {
         viewModelScope.launch {
-            val addedUserId = checkUserExistsByPhone(phoneNumber)
+            val addedUserId = checkUserExistsByPhoneOrUsername(phoneNumber,username)
             if(addedUserId!=null){
                 contact.id = addedUserId
                 _state.value = NewContactState.Success
@@ -43,12 +43,6 @@ class NewContactViewModel @Inject constructor(
         }
     }
 
-//    suspend fun getProfilePictureUrl(userId: String): String? {
-//        return try {
-//            getProfilePictureUrlUseCase(userId)
-//        } catch (e: Exception) {
-//            null
-//        }
-//    }
+
 
 }

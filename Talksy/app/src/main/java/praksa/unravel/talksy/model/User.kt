@@ -1,5 +1,7 @@
 package praksa.unravel.talksy.model
 
+import com.google.firebase.Timestamp
+
 data class User(
     val id: String = "",
     val username: String = "",
@@ -8,6 +10,8 @@ data class User(
     val profilePicture: String = "",
     val firstName: String = "",
     val lastName: String = "",
-    val bio: String = ""
+    val bio: String = "",
+    val isOnline: Boolean = false,
+    val lastSeen: Timestamp? = null
 )
 

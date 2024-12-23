@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/lightGray"
+    >
+
+    <ImageView
+        android:id="@+id/iconImageIV"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="12dp"
+        app:tint="@color/blueBtn"
+        />
+    <TextView
+        android:id="@+id/itemTextTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toEndOf="@id/iconImageIV"
+        app:layout_constraintTop_toTopOf="@+id/iconImageIV"
+        app:layout_constraintBottom_toBottomOf="@id/iconImageIV"
+        android:text="@string/find_people_nearby"
+        android:textSize="16sp"
+        android:textColor="@color/blueText"
+        />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray"
+        android:layout_marginTop="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/itemTextTV"
+        android:layout_marginHorizontal="18dp"
+        />
+
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

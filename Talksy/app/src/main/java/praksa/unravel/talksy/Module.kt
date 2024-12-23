@@ -131,6 +131,4 @@ object Module {
         return UploadProfilePictureUseCase(authRepository)
     }
 
-
-
 }

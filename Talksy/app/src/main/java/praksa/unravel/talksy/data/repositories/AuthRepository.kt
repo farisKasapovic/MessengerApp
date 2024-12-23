@@ -222,10 +222,7 @@ fun addUserToDatabase(user: User): Flow<Result<Unit>> {
             .mapSuccess { snapshot -> snapshot.toObject(User::class.java) ?: User() }
 
     fun updateUserData(user: User, firstName: String, lastName: String, bio: String): Flow<Result<Unit>> {
-
-
         val userId = user.id.ifEmpty { firebaseAuth.currentUser?.uid ?: throw IllegalStateException("User not logged in") }
-
 
         Log.d("AuthRepo","GRESKA: vrijednost userid $userId")
         Log.d("AuthRepo","${user.id} and ${user.firstName} and ${user.lastName} and ${user.bio}")
@@ -251,6 +248,13 @@ fun addUserToDatabase(user: User): Flow<Result<Unit>> {
             emit(Result.Failure(e))
         }
     }
+
+
+
+
+
+
+
 
 
 }

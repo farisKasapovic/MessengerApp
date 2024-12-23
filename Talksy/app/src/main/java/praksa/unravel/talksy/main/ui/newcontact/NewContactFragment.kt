@@ -40,6 +40,7 @@ class NewContactFragment : Fragment() {
             val firstName = binding.firstNameET.text.toString()
             val lastName = binding.lastNameET.text.toString()
             val phoneNumber = binding.phoneNumberET.text.toString()
+            val username = binding.usernameET.text.toString()
 
             if (firstName.isBlank() || lastName.isBlank() || phoneNumber.isBlank()) {
                 Toast.makeText(requireContext(), "Sva polja su obavezna!", Toast.LENGTH_SHORT).show()
@@ -49,7 +50,7 @@ class NewContactFragment : Fragment() {
                     lastName = lastName,
                     phoneNumber = phoneNumber
                 )
-                viewModel.addContact(contact,phoneNumber)
+                viewModel.addContact(contact,phoneNumber,username)
             }
         }
         observeViewModel()

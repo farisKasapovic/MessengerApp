@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "289279097440",
+    "firebase_url": "https://talksy-b267e-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "talksy-b267e",
     "storage_bucket": "talksy-b267e.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "praksa.unravel.talksy"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "289279097440-69jb1tfls1egoqc5gf0pvfg9djl9k6h2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "praksa.unravel.talksy",
+            "certificate_hash": "ba279da5d900022cec585af0b7219a912fb36619"
+          }
+        },
+        {
+          "client_id": "289279097440-iji07tlpsh0gg7qcug5j6ssg5dlf7pr2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBeY0pvY0AOJz1s_5nDDH0wj6Oina03Ow4"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "289279097440-iji07tlpsh0gg7qcug5j6ssg5dlf7pr2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

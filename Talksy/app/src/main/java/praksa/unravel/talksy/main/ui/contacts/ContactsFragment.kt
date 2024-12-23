@@ -21,13 +21,15 @@ import praksa.unravel.talksy.R
 import praksa.unravel.talksy.main.model.Contact
 import praksa.unravel.talksy.ui.contacts.ContactsAdapter
 
+
 @AndroidEntryPoint
 class ContactsFragment : Fragment() {
 
     private val viewModel: ContactsViewModel by viewModels()
+    private val activityStatusViewModel: UserStatusViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ContactsAdapter
-    private val contactsList = mutableListOf<Contact>()
+    private val itemsList = mutableListOf<Any>()
 
 
     override fun onCreateView(
@@ -37,67 +39,63 @@ class ContactsFragment : Fragment() {
         val view = inflater.inflate(R.layout.contacts_fragment, container, false)
         val addIcon = view.findViewById<View>(R.id.addContactIV)
 
-        addIcon.setOnClickListener { showPopupWindow(it) }  // ovdje pozovi
+        addIcon.setOnClickListener { toggleMenuItems() }
 
         recyclerView = view.findViewById(R.id.contactRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        adapter = ContactsAdapter(contactsList) { userId, imageView ->
+        adapter = ContactsAdapter(itemsList, { userId, imageView ->
             viewLifecycleOwner.lifecycleScope.launch {
                 val profilePictureUrl = viewModel.getProfilePictureUrl(userId)
-                Log.d("ContactsFragment","vrijednost profilepictureurlaje $profilePictureUrl")
                 Glide.with(requireContext())
                     .load(profilePictureUrl)
                     .placeholder(R.drawable.default_profile_picture)
                     .into(imageView)
             }
+        }) { menuPosition ->
+            handleMenuItemClick(menuPosition)
+
         }
-//        adapter = ContactsAdapter(contactsList)
         recyclerView.adapter = adapter
 
         observeViewModel()
+        observeUserStatuses()
         return view
     }
 
+    private fun toggleMenuItems() {
+        val isMenuPresent = itemsList.any { it is MenuType }
 
-
-    private fun showPopupWindow(anchorView: View) {
-        val popupView = LayoutInflater.from(requireContext()).inflate(R.layout.popup_menu_layout, null)
-
-        val popupWindow = PopupWindow(
-            popupView,
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            true
-        )
-
-        popupWindow.isOutsideTouchable = true
-        popupWindow.isFocusable = true
-
-        popupWindow.showAsDropDown(anchorView, 0, 0)
-
-        val option1 = popupView.findViewById<LinearLayout>(R.id.findPeopleLinear)
-        val option2 = popupView.findViewById<LinearLayout>(R.id.invitePeopleLinear)
-        val option3 = popupView.findViewById<LinearLayout>(R.id.newContactLinear)
-
-
-        option1.setOnClickListener {
-            Toast.makeText(requireContext(), "Izabrana opcija 1", Toast.LENGTH_SHORT).show()
-            popupWindow.dismiss()
-        }
-
-        option2.setOnClickListener {
-            Toast.makeText(requireContext(), "Izabrana opcija 2", Toast.LENGTH_SHORT).show()
-            popupWindow.dismiss()
-        }
-
-        option3.setOnClickListener {
-            Toast.makeText(requireContext(), "Izabrana opcija 3", Toast.LENGTH_SHORT).show()
-            findNavController().navigate(R.id.action_contactsFragment_to_newContactFragment)
-            popupWindow.dismiss()
+        if (isMenuPresent) {
+            itemsList.removeAll { it is MenuType }
+            adapter.notifyDataSetChanged()
+        } else {
+            itemsList.add(0, MenuType.FIND_PEOPLE)
+            itemsList.add(1, MenuType.INVITE_PEOPLE)
+            itemsList.add(2, MenuType.NEW_CONTACT)
+            adapter.notifyItemRangeInserted(0, 3)
         }
     }
 
 
+
+    private fun handleMenuItemClick(menuType: MenuType) {
+        when (menuType) {
+            MenuType.FIND_PEOPLE -> {
+                Toast.makeText(requireContext(), "Find People clicked", Toast.LENGTH_SHORT).show()
+            }
+            MenuType.INVITE_PEOPLE -> {
+                Toast.makeText(requireContext(), "Invite People clicked", Toast.LENGTH_SHORT).show()
+            }
+            MenuType.NEW_CONTACT -> {
+                findNavController().navigate(R.id.action_contactsFragment_to_newContactFragment)
+            }
+        }
+    }
+
+
+
+
+// Standardno
     private fun observeViewModel() {
         lifecycleScope.launchWhenStarted {
             viewModel.state.collect { state ->
@@ -106,8 +104,9 @@ class ContactsFragment : Fragment() {
                         // Prikaz loading indikatora
                     }
                     is ContactsState.Success -> {
-                        contactsList.clear()
-                        contactsList.addAll(state.contacts)
+                        itemsList.clear()
+                        itemsList.addAll(state.contacts)
+                        fetchUserStatuses(state.contacts)
                         adapter.notifyDataSetChanged()
                     }
                     is ContactsState.Error -> {
@@ -120,4 +119,50 @@ class ContactsFragment : Fragment() {
             }
         }
     }
+
+
+    private fun observeUserStatuses() {
+        lifecycleScope.launchWhenStarted {
+            activityStatusViewModel.status.collect { status ->
+                val (userId, userStatus) = status ?: return@collect
+
+                // Find the corresponding contact and update its status
+                val contactIndex = itemsList.indexOfFirst { it is Contact && it.id == userId }
+                Log.d("ContactsFragment","vrijednost: $contactIndex")
+                if (contactIndex != -1) {
+                    val contact = itemsList[contactIndex] as Contact
+                    val updatedContact = contact.copy(
+                        isOnline = userStatus.first,
+                        lastSeen = userStatus.second
+                    )
+                    Log.d("ContactsFragment","vrijednost: ${updatedContact.isOnline} and ${updatedContact.lastSeen}")
+                    itemsList[contactIndex] = updatedContact
+                    adapter.notifyItemChanged(contactIndex) // Notify adapter of the change
+                }
+            }
+        }
+    }
+
+    private fun fetchUserStatuses(contacts: List<Contact>) {
+        contacts.forEach { contact ->
+            activityStatusViewModel.fetchUserStatus(contact.id) // Fetch status for each user
+        }
+    }
+
+
+
+    override fun onStart() {
+        super.onStart()
+        activityStatusViewModel.setUserOnline()
+        Log.d("ContactsFragment","vrijednost: uslo je u onStart()")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        lifecycleScope.launch {
+            activityStatusViewModel.setUserOffline()
+        }
+    }
+
+
 }

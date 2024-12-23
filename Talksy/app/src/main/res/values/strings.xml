@@ -87,6 +87,7 @@
     <string name="add_new_contact">Add New Contact</string>
     <string name="faris_kasapovic">Faris Kasapovic</string>
     <string name="last_seen_recently">last seen recently.</string>
+    <string name="enter_username">Enter username</string>
 
 
 </resources>

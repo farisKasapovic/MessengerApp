@@ -93,15 +93,38 @@
         android:hint="@string/enter_you_last_name"
         android:layout_marginTop="8dp"
         />
+    <TextView
+        android:id="@+id/usernameTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/username"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/firstNameET"
+        android:layout_marginHorizontal="18dp"
+        android:layout_marginTop="8dp"
+        />
+    <EditText
+        android:id="@+id/usernameET"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/usernameTV"
+        android:layout_marginTop="8dp"
+        android:hint="@string/enter_username"
+        android:layout_marginHorizontal="18dp"
+        />
+
+
 <TextView
     android:id="@+id/phoneNumberTV"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toBottomOf="@id/firstNameET"
+    app:layout_constraintTop_toBottomOf="@id/usernameET"
     android:text="@string/phone_number"
     android:layout_marginHorizontal="18dp"
-    android:layout_marginTop="24dp"
+    android:layout_marginTop="8dp"
     />
     <EditText
         android:id="@+id/phoneNumberET"
@@ -111,6 +134,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/phoneNumberTV"
         android:layout_marginHorizontal="18dp"
+        android:layout_marginTop="8dp"
         android:hint="@string/add_your_phone_number"
         />
 

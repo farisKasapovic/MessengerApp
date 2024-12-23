@@ -5,17 +5,25 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
+import praksa.unravel.talksy.common.result.Result
 import praksa.unravel.talksy.main.model.Contact
+import praksa.unravel.talksy.model.User
+import com.google.firebase.Timestamp
+import com.google.firebase.database.FirebaseDatabase
 
 class ContactsRepository(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    private val storage: FirebaseStorage,
 ) {
 
     private val userId
         get() = auth.currentUser?.uid ?: throw IllegalStateException("User not logged in")
+
+
 
     suspend fun addContact(contact: Contact, addedUserId: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -44,18 +52,28 @@ class ContactsRepository(
 
     //Check if user exists in our database by phoneNumber, if not null
 
-    suspend fun checkUserExistsByPhone(phoneNumber: String): String? {
-        val querySnapshot = db.collection("Users")
+    suspend fun checkUserExistsByPhoneOrUsername(phoneNumber: String, username: String): String? {
+        val phoneQuery = db.collection("Users")
             .whereEqualTo("phone", phoneNumber)
             .get()
             .await()
 
-        return if (!querySnapshot.isEmpty) {
-            querySnapshot.documents[0].id   //vratiti userID
+        if (!phoneQuery.isEmpty) {
+            return phoneQuery.documents[0].id // Vraća ID korisnika pronađenog po broju
+        }
+
+        val usernameQuery = db.collection("Users")
+            .whereEqualTo("username", username)
+            .get()
+            .await()
+
+        return if (!usernameQuery.isEmpty) {
+            usernameQuery.documents[0].id // Vraća ID korisnika pronađenog po korisničkom imenu
         } else {
-            null
+            null // Nema rezultata
         }
     }
+
 
 
     suspend fun getContacts(): List<Contact> {
@@ -82,5 +100,39 @@ class ContactsRepository(
             null
         }
     }
+// NOVOO
+
+    // Added: Update user's online/offline status
+//    fun updateUserStatus(isOnline: Boolean) {
+//        val userId = auth.currentUser?.uid ?: return
+//        val updates = if (isOnline) {
+//            mapOf("isOnline" to true)
+//        } else {
+//            mapOf(
+//                "isOnline" to false,
+//                "lastSeen" to Timestamp.now()
+//            )
+//        }
+//
+//            db.collection("Users").document(userId)
+//            .update(updates)
+//            .addOnSuccessListener { println("User status updated successfully.") }
+//            .addOnFailureListener { println("Error updating user status: ${it.message}") }
+//    }
+//
+//    fun getUserStatus(userId: String): Flow<Result<User>> = flow {
+//        try {
+//            val documentSnapshot = db.collection("Users").document(userId).get().await()
+//            val user = documentSnapshot.toObject(User::class.java)
+//            if (user != null) {
+//                emit(Result.Success(user))
+//            } else {
+//                emit(Result.Failure(Exception("User not found")))
+//            }
+//        } catch (e: Exception) {
+//            emit(Result.Failure(e))
+//        }
+//    }
+
 }
 

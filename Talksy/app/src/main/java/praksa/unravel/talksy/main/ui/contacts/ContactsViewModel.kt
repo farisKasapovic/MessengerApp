@@ -4,22 +4,24 @@ package praksa.unravel.talksy.main.ui.contacts
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import praksa.unravel.talksy.main.domain.usecase.AddContactUseCase
-import praksa.unravel.talksy.main.domain.usecase.CheckUserExistsByPhone
 import praksa.unravel.talksy.main.domain.usecase.GetContactsUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
+
 import praksa.unravel.talksy.main.model.Contact
+import praksa.unravel.talksy.common.result.Result
 import javax.inject.Inject
 
 
 @HiltViewModel
 class ContactsViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
-    private val getProfilePictureUrlUseCase: GetProfilePictureUrlUseCase
+    private val getProfilePictureUrlUseCase: GetProfilePictureUrlUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ContactsState>(ContactsState.Loading)
@@ -29,7 +31,7 @@ class ContactsViewModel @Inject constructor(
         fetchContacts()
     }
 
-    fun fetchContacts() {
+    private fun fetchContacts() {
         viewModelScope.launch {
             _state.value = ContactsState.Loading
             try {
@@ -52,6 +54,7 @@ class ContactsViewModel @Inject constructor(
             null
         }
     }
+
 
 
 }

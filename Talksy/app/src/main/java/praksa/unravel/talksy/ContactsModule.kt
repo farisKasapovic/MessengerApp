@@ -1,6 +1,7 @@
 package praksa.unravel.talksy
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
@@ -9,9 +10,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import praksa.unravel.talksy.main.data.repositories.ContactsRepository
 import praksa.unravel.talksy.main.domain.usecase.AddContactUseCase
-import praksa.unravel.talksy.main.domain.usecase.CheckUserExistsByPhone
+import praksa.unravel.talksy.main.domain.usecase.CheckUserExistsByPhoneOrUsername
 import praksa.unravel.talksy.main.domain.usecase.GetContactsUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
+//import praksa.unravel.talksy.main.domain.usecase.GetUserStatusUseCase
+//import praksa.unravel.talksy.main.domain.usecase.UpdateUserStatusUseCase
 import javax.inject.Singleton
 
 @Module
@@ -46,8 +49,8 @@ object ContactsModule {
     }
 
     @Provides
-    fun provideCheckUserExistsByPhone(repository: ContactsRepository): CheckUserExistsByPhone {
-        return CheckUserExistsByPhone(repository)
+    fun provideCheckUserExistsByPhoneOrUsername(repository: ContactsRepository): CheckUserExistsByPhoneOrUsername {
+        return CheckUserExistsByPhoneOrUsername(repository)
     }
 
     @Provides
