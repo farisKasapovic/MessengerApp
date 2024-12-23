@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -77,7 +78,10 @@ class MoreInfoFragment : Fragment() {
             viewModel.userState.collectLatest {
                 when (it) {
                     is MoreInfoState.Loading -> Log.d("MoreInfoFragment", "Loading...")
-                    is MoreInfoState.Success -> populateUserData(it.user) //Dodati navigator da predje na fragment u MoreInfoFragmentu
+                    is MoreInfoState.Success -> {populateUserData(it.user)
+                        findNavController().navigate(R.id.action_loginFragment_to_baseFragment)
+
+                    }
                     is MoreInfoState.Error -> ToastUtils.showCustomToast(
                         requireContext(),
                         it.message

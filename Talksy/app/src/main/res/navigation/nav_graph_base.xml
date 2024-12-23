@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/chatsFragment">
+
+    <!-- Chats Fragment -->
+    <fragment
+        android:id="@+id/chatsFragment"
+        android:name="praksa.unravel.talksy.main.ui.chats.ChatsFragment"
+        android:label="Chats"
+        tools:layout="@layout/chats_fragment" />
+
+    <!-- Premium Fragment -->
+    <fragment
+        android:id="@+id/premiumFragment"
+        android:name="praksa.unravel.talksy.main.ui.premium.PremiumFragment"
+        android:label="Premium"
+        tools:layout="@layout/premium_fragment" />
+
+    <!-- Contacts Fragment -->
+    <fragment
+        android:id="@+id/contactsFragment"
+        android:name="praksa.unravel.talksy.main.ui.contacts.ContactsFragment"
+        android:label="Contacts"
+        tools:layout="@layout/contacts_fragment" >
+        <action
+            android:id="@+id/action_contactsFragment_to_newContactFragment"
+            app:destination="@id/newContactFragment" />
+    </fragment>
+
+    <!-- Settings Fragment -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="praksa.unravel.talksy.main.ui.settings.SettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/settings_fragment" />
+
+    <fragment
+        android:id="@+id/newContactFragment"
+        android:name="praksa.unravel.talksy.main.ui.newcontact.NewContactFragment"
+        android:label="newContact"
+        tools:layout="@layout/new_contact_fragment"
+        />
+</navigation>

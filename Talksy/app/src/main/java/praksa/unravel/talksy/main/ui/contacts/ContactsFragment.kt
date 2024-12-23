@@ -137,7 +137,7 @@ class ContactsFragment : Fragment() {
                     )
                     Log.d("ContactsFragment","vrijednost: ${updatedContact.isOnline} and ${updatedContact.lastSeen}")
                     itemsList[contactIndex] = updatedContact
-                    adapter.notifyItemChanged(contactIndex) // Notify adapter of the change
+                    adapter.notifyItemChanged(contactIndex) 
                 }
             }
         }
@@ -145,24 +145,8 @@ class ContactsFragment : Fragment() {
 
     private fun fetchUserStatuses(contacts: List<Contact>) {
         contacts.forEach { contact ->
-            activityStatusViewModel.fetchUserStatus(contact.id) // Fetch status for each user
+            activityStatusViewModel.fetchUserStatus(contact.id)
         }
     }
-
-
-
-    override fun onStart() {
-        super.onStart()
-        activityStatusViewModel.setUserOnline()
-        Log.d("ContactsFragment","vrijednost: uslo je u onStart()")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        lifecycleScope.launch {
-            activityStatusViewModel.setUserOffline()
-        }
-    }
-
 
 }

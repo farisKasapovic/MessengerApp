@@ -1,34 +1,55 @@
 package praksa.unravel.talksy.main.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import praksa.unravel.talksy.R
+import praksa.unravel.talksy.main.ui.contacts.UserStatusViewModel
 
+@AndroidEntryPoint
 class BaseFragment : Fragment() {
 
+    private val activityStatusViewModel: UserStatusViewModel by viewModels()
     private lateinit var bottomNavigationView: BottomNavigationView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_base, container, false)
+        val view = inflater.inflate(R.layout.base_fragment, container, false)
 
-        // Inicijalizacija BottomNavigationView
         bottomNavigationView = view.findViewById(R.id.bottomNav)
 
         val navHostFragment = childFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
 
-        // Povezivanje BottomNavigationView sa NavController-om
         bottomNavigationView.setupWithNavController(navController)
 
         return view
     }
+
+    override fun onStart() {
+        super.onStart()
+        activityStatusViewModel.setUserOnline()
+        Log.d("ContactsFragment","vrijednost: uslo je u onStart()")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        lifecycleScope.launch {
+            activityStatusViewModel.setUserOffline()
+        }
+    }
+
+
 }

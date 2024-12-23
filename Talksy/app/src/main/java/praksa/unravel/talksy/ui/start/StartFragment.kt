@@ -39,7 +39,7 @@ class StartFragment : Fragment() {
      val auth = FirebaseAuth.getInstance()
         val currentUser=auth.currentUser
         if(currentUser!=null){
-            findNavController().navigate(R.id.action_startFragment_to_chatsFragment)
+            findNavController().navigate(R.id.action_startFragment_to_baseFragment)
         }
 
     }

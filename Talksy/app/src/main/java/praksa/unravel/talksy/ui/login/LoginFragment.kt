@@ -114,7 +114,7 @@ class LoginFragment : Fragment() {
             startActivityForResult(signInIntent, RC_SIGN_IN)
         }
 
-        // Navigate to RegisterFragment
+
         binding.loginTV6.setOnClickListener {
             findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
         }
@@ -124,14 +124,13 @@ class LoginFragment : Fragment() {
         }
 
         binding.loginTV1.setOnClickListener{
-            findNavController().navigate(R.id.action_loginFragment_to_chatsFragment)
+            findNavController().navigate(R.id.action_loginFragment_to_baseFragment)
         }
 
 
 
         observeViewModel()
     }
-    //+phone number check
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -158,7 +157,7 @@ class LoginFragment : Fragment() {
 
                     is LoginState.Success -> {
                         ToastUtils.showCustomToast(requireContext(), state.message)
-                        findNavController().navigate(R.id.action_loginFragment_to_chatsFragment) //nije vise logout nego fragment chats
+                        findNavController().navigate(R.id.action_loginFragment_to_baseFragment)
                     }
 
                     is LoginState.Error -> {
