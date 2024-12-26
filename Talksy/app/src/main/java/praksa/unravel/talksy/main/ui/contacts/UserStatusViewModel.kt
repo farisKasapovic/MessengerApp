@@ -1,12 +1,14 @@
 package praksa.unravel.talksy.main.ui.contacts
 
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.main.domain.UserStatusUsecase.GetUserStatusUseCase
 import praksa.unravel.talksy.main.domain.UserStatusUsecase.SetUserOfflineUseCase

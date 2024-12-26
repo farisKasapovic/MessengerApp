@@ -11,10 +11,13 @@
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_marginStart="16dp"
-        android:background="@color/icons"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@drawable/circular_image"
+        android:scaleType="centerCrop"
+        android:clipToOutline="true"
+        />
     <TextView
         android:id="@+id/usernameTV"
         android:layout_width="wrap_content"
@@ -27,6 +30,7 @@
         android:textStyle="bold"
         android:textColor="@color/black"
         android:textSize="14sp"
+
 
         />
     <TextView
@@ -50,7 +54,8 @@
         app:layout_constraintTop_toTopOf="@id/usernameTV"
         app:layout_constraintBottom_toBottomOf="@id/usernameTV"
         android:layout_marginStart="16dp"
-        android:background="@color/icons"
+        android:background="@drawable/circular_image"
+        android:scaleType="centerCrop"
         />
 
     <TextView

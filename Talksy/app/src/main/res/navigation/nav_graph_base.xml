@@ -9,7 +9,22 @@
         android:id="@+id/chatsFragment"
         android:name="praksa.unravel.talksy.main.ui.chats.ChatsFragment"
         android:label="Chats"
-        tools:layout="@layout/chats_fragment" />
+        tools:layout="@layout/chats_fragment" >
+
+        <action
+            android:id="@+id/action_chatsFragment_to_contactsFragment"
+            app:destination="@id/contactsFragment" />
+        <action
+            android:id="@+id/action_chatsFragment_to_directMessageFragment"
+            app:destination="@id/directMessageFragment">
+        <argument
+            android:name="chatId"
+            app:argType="string"/>
+    </action>
+
+    </fragment>
+
+
 
     <!-- Premium Fragment -->
     <fragment
@@ -27,7 +42,24 @@
         <action
             android:id="@+id/action_contactsFragment_to_newContactFragment"
             app:destination="@id/newContactFragment" />
+        <action
+            android:id="@+id/action_contactsFragment_to_chatsFragment"
+            app:destination="@id/chatsFragment">
+        </action>
+        <action
+            android:id="@+id/action_contactsFragment_to_directMessageFragment"
+            app:destination="@id/directMessageFragment">
+            <argument
+                android:name="chatId"
+                app:argType="string"/>
+        </action>
     </fragment>
+
+    <fragment
+        android:id="@+id/directMessageFragment"
+        android:name="praksa.unravel.talksy.main.ui.chat.DirectMessageFragment"
+        android:label="Direct Message"
+        tools:layout="@layout/fragment_direct_message" />
 
     <!-- Settings Fragment -->
     <fragment
@@ -42,4 +74,5 @@
         android:label="newContact"
         tools:layout="@layout/new_contact_fragment"
         />
+
 </navigation>

@@ -94,6 +94,8 @@ dependencies {
     // Realtime database
     implementation ("com.google.firebase:firebase-database-ktx:20.2.1")
 
+    // Firebase Cloud messaging
+    implementation ("com.google.firebase:firebase-messaging")           // FCM dependency
 
 
 

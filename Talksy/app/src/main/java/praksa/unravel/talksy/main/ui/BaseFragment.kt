@@ -35,6 +35,16 @@ class BaseFragment : Fragment() {
 
         bottomNavigationView.setupWithNavController(navController)
 
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.newContactFragment, R.id.directMessageFragment -> {
+                    bottomNavigationView.visibility = View.GONE
+                }
+                else -> {
+                    bottomNavigationView.visibility = View.VISIBLE
+                }
+            }
+        }
         return view
     }
 

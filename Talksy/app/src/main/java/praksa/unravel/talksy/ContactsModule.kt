@@ -11,6 +11,7 @@ import dagger.hilt.components.SingletonComponent
 import praksa.unravel.talksy.main.data.repositories.ContactsRepository
 import praksa.unravel.talksy.main.domain.usecase.AddContactUseCase
 import praksa.unravel.talksy.main.domain.usecase.CheckUserExistsByPhoneOrUsername
+import praksa.unravel.talksy.main.domain.usecase.CreateChatUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetContactsUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
 //import praksa.unravel.talksy.main.domain.usecase.GetUserStatusUseCase
@@ -32,10 +33,9 @@ object ContactsModule {
     @Singleton
     fun provideContactsRepository(
         firebaseAuth: FirebaseAuth,
-        firestore: FirebaseFirestore,
-        storage: FirebaseStorage
+        firestore: FirebaseFirestore
     ): ContactsRepository {
-        return ContactsRepository(firebaseAuth, firestore,storage)
+        return ContactsRepository(firebaseAuth, firestore)
     }
 
     @Provides
@@ -56,6 +56,11 @@ object ContactsModule {
     @Provides
     fun provideGetProfilePictureUrlUseCase(repository: ContactsRepository):GetProfilePictureUrlUseCase{
         return GetProfilePictureUrlUseCase(repository)
+    }
+
+    @Provides
+    fun provideCreateChatUseCase(repository: ContactsRepository): CreateChatUseCase{
+        return CreateChatUseCase(repository)
     }
 
 }

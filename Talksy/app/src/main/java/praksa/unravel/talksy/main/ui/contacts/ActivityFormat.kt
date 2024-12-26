@@ -12,7 +12,7 @@ fun formatLastSeen(lastSeen: Timestamp?): String {
     val diff = now - lastSeenMillis
 
     return when {
-        diff < 60 * 1000 -> "Just now" // Less than a minute
+        diff < 60 * 1000 -> "Just now"
         diff < 60 * 60 * 1000 -> {
             val minutes = diff / (60 * 1000)
             "$minutes minute${if (minutes > 1) "s" else ""} ago"

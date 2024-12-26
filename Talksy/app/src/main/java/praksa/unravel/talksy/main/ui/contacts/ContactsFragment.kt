@@ -5,8 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -43,6 +41,7 @@ class ContactsFragment : Fragment() {
 
         recyclerView = view.findViewById(R.id.contactRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
         adapter = ContactsAdapter(itemsList, { userId, imageView ->
             viewLifecycleOwner.lifecycleScope.launch {
                 val profilePictureUrl = viewModel.getProfilePictureUrl(userId)
@@ -51,10 +50,12 @@ class ContactsFragment : Fragment() {
                     .placeholder(R.drawable.default_profile_picture)
                     .into(imageView)
             }
-        }) { menuPosition ->
-            handleMenuItemClick(menuPosition)
+        }, { menuType ->
+            handleMenuItemClick(menuType)
+        }, { contact ->
+            startChat(contact)
+        })
 
-        }
         recyclerView.adapter = adapter
 
         observeViewModel()
@@ -62,6 +63,7 @@ class ContactsFragment : Fragment() {
         return view
     }
 
+    //Menu items for RecyclerView
     private fun toggleMenuItems() {
         val isMenuPresent = itemsList.any { it is MenuType }
 
@@ -76,8 +78,6 @@ class ContactsFragment : Fragment() {
         }
     }
 
-
-
     private fun handleMenuItemClick(menuType: MenuType) {
         when (menuType) {
             MenuType.FIND_PEOPLE -> {
@@ -91,8 +91,6 @@ class ContactsFragment : Fragment() {
             }
         }
     }
-
-
 
 
 // Standardno
@@ -120,7 +118,6 @@ class ContactsFragment : Fragment() {
         }
     }
 
-
     private fun observeUserStatuses() {
         lifecycleScope.launchWhenStarted {
             activityStatusViewModel.status.collect { status ->
@@ -137,7 +134,7 @@ class ContactsFragment : Fragment() {
                     )
                     Log.d("ContactsFragment","vrijednost: ${updatedContact.isOnline} and ${updatedContact.lastSeen}")
                     itemsList[contactIndex] = updatedContact
-                    adapter.notifyItemChanged(contactIndex) 
+                    adapter.notifyItemChanged(contactIndex)
                 }
             }
         }
@@ -147,6 +144,23 @@ class ContactsFragment : Fragment() {
         contacts.forEach { contact ->
             activityStatusViewModel.fetchUserStatus(contact.id)
         }
+    }
+
+
+    private fun startChat(contact: Contact) {
+        lifecycleScope.launch {
+            try {
+                val chatId = viewModel.createOrFetchChat(contact.id)
+               navigateToChatsFragment(chatId)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Failed to start chat: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun navigateToChatsFragment(chatId: String) {
+       val action = ContactsFragmentDirections.actionContactsFragmentToDirectMessageFragment(chatId)
+        findNavController().navigate(action)
     }
 
 }

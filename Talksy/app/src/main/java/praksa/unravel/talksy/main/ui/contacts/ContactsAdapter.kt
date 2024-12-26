@@ -16,9 +16,10 @@ import java.util.Locale
 
 
 class ContactsAdapter(
-    private val items: MutableList<Any>, // Kontakti i meni stavke
+    private val items: MutableList<Any>, // Generic -> Contacts and Menu items
     private val onProfilePictureLoad: (String, ImageView) -> Unit,
-    private val onMenuItemClick: (MenuType) -> Unit
+    private val onMenuItemClick: (MenuType) -> Unit,
+    private val onContactClick: (Contact) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -68,41 +69,15 @@ class ContactsAdapter(
                 holder.firstName.text = contact.firstName
                 holder.lastName.text = contact.lastName
                 onProfilePictureLoad(contact.id, holder.picture)
-                //Aktivnost
-//                holder.activityStatus.text = if (contact.isOnline) {
-//                    "Online"
-//                } else {
-//                    "Last seen: ${contact.lastSeen?.toDate()}"
-//                }
-                // Display activity status
-                // UVIJEK JE FALSE
+
                 holder.activityStatus.text = if (contact.isOnline) {
                     "Online"
                 } else {
                     formatLastSeen(contact.lastSeen)
-//                    contact.lastSeen?.let {
-//                        val date = java.text.SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-//                            .format(it.toDate())
-//                        "Last seen: $date"
-//                    } ?: "Offline"
                 }
+                holder.itemView.setOnClickListener { onContactClick(contact) }
             }
             is MenuViewHolder -> {
-//                val menuPosition = position
-//                when (menuPosition) {
-//                    0 -> {
-//                        holder.icon.setImageResource(R.drawable.location)
-//                        holder.text.text = "Find people"
-//                    }
-//                    1 -> {
-//                        holder.icon.setImageResource(R.drawable.invitefriends)
-//                        holder.text.text = "Invite People"
-//                    }
-//                    2 -> {
-//                        holder.icon.setImageResource(R.drawable.add)
-//                        holder.text.text = "New Contact"
-//                    }
-//                }
                 val menuType = when(position){
                     0 -> MenuType.FIND_PEOPLE
                     1 -> MenuType.INVITE_PEOPLE
@@ -118,12 +93,3 @@ class ContactsAdapter(
 
     override fun getItemCount(): Int = items.size
 }
-
-
-
-
-/*
-Prilikom dodavanja broja treba vidjeti da li ta osoba uopste postoji u bazi sa tim brojem jer inace taj korisnik ne koristi nasu aplikaciju
-Treba dokument id i field id u contact biti == uid.Usera tog korisnika kojeg dodamo
-
- */

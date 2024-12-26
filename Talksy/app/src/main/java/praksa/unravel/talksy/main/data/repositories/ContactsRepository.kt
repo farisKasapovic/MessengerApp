@@ -1,46 +1,31 @@
 package praksa.unravel.talksy.main.data.repositories
 
 import android.util.Log
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
-import praksa.unravel.talksy.common.result.Result
 import praksa.unravel.talksy.main.model.Contact
-import praksa.unravel.talksy.model.User
-import com.google.firebase.Timestamp
-import com.google.firebase.database.FirebaseDatabase
 
 class ContactsRepository(
     private val auth: FirebaseAuth,
-    private val db: FirebaseFirestore,
-    private val storage: FirebaseStorage,
+    private val db: FirebaseFirestore
 ) {
-
     private val userId
         get() = auth.currentUser?.uid ?: throw IllegalStateException("User not logged in")
-
-
 
     suspend fun addContact(contact: Contact, addedUserId: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId == null) {
-            Log.d("ContactsRepository", "User is not logged in!")
             throw IllegalStateException("User not logged in")
         }
-        Log.d("ContactRepo", "vrijednost $userId")
-
         try {
             FirebaseFirestore.getInstance()
-                .collection("Users") // Glavna kolekcija korisnika
-                .document(userId) // Dokument korisnika
-                .collection("contacts") // Podkolekcija kontakata
+                .collection("Users")
+                .document(userId)
+                .collection("contacts")
                 .document(addedUserId)
                 .set(contact)
-                //.add(contact) // Dodavanje kontakta
                 .addOnSuccessListener { Log.d("Firestore", "Contact added successfully!") }
                 .addOnFailureListener { e -> Log.e("Firestore", "Error adding contact", e) }
                 .await()
@@ -50,8 +35,7 @@ class ContactsRepository(
         }
     }
 
-    //Check if user exists in our database by phoneNumber, if not null
-
+    //Check if user exists in our database by phoneNumber, if not null + mail
     suspend fun checkUserExistsByPhoneOrUsername(phoneNumber: String, username: String): String? {
         val phoneQuery = db.collection("Users")
             .whereEqualTo("phone", phoneNumber)
@@ -59,7 +43,7 @@ class ContactsRepository(
             .await()
 
         if (!phoneQuery.isEmpty) {
-            return phoneQuery.documents[0].id // Vraća ID korisnika pronađenog po broju
+            return phoneQuery.documents[0].id
         }
 
         val usernameQuery = db.collection("Users")
@@ -68,13 +52,11 @@ class ContactsRepository(
             .await()
 
         return if (!usernameQuery.isEmpty) {
-            usernameQuery.documents[0].id // Vraća ID korisnika pronađenog po korisničkom imenu
+            usernameQuery.documents[0].id
         } else {
-            null // Nema rezultata
+            null
         }
     }
-
-
 
     suspend fun getContacts(): List<Contact> {
         val snapshot =
@@ -83,8 +65,6 @@ class ContactsRepository(
                 .collection("contacts")
                 .get()
                 .await()
-
-
         return snapshot.toObjects(Contact::class.java)
     }
 
@@ -100,39 +80,46 @@ class ContactsRepository(
             null
         }
     }
-// NOVOO
 
-    // Added: Update user's online/offline status
-//    fun updateUserStatus(isOnline: Boolean) {
-//        val userId = auth.currentUser?.uid ?: return
-//        val updates = if (isOnline) {
-//            mapOf("isOnline" to true)
-//        } else {
-//            mapOf(
-//                "isOnline" to false,
-//                "lastSeen" to Timestamp.now()
-//            )
-//        }
-//
-//            db.collection("Users").document(userId)
-//            .update(updates)
-//            .addOnSuccessListener { println("User status updated successfully.") }
-//            .addOnFailureListener { println("Error updating user status: ${it.message}") }
-//    }
-//
-//    fun getUserStatus(userId: String): Flow<Result<User>> = flow {
-//        try {
-//            val documentSnapshot = db.collection("Users").document(userId).get().await()
-//            val user = documentSnapshot.toObject(User::class.java)
-//            if (user != null) {
-//                emit(Result.Success(user))
-//            } else {
-//                emit(Result.Failure(Exception("User not found")))
-//            }
-//        } catch (e: Exception) {
-//            emit(Result.Failure(e))
-//        }
-//    }
+    suspend fun createOrFetchChat(contactId: String): String {
+        val existingChat =
+            db.collection("Chats")
+            .whereArrayContains("users", userId) // Current User exists in any array field of a document
+            .get()
+            .await()
+            .documents.firstOrNull { document ->
+                val users = document.get("users") as List<*>
+                users.contains(contactId)
+            }
+        return if (existingChat != null) {
+            val lastMessageText = db.collection("Chats")
+                .document(existingChat.id)
+                .collection("Messages")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .await()
+                .documents
+                .firstOrNull()
+                ?.getString("text") ?: "No messages yet" // Default text if no messages exist
+
+//            //Last message (small problem...)
+//            db.collection("Chats")
+//                .document(existingChat.id)
+//                .update("lastMessage",lastMessageText)
+//                .await()
+
+            existingChat.id
+        } else {
+            val newChat = hashMapOf(
+                "users" to listOf(userId, contactId),
+                "lastMessage" to "",
+                "timestamp" to System.currentTimeMillis()
+            )
+            val chatRef = db.collection("Chats").add(newChat).await()
+            chatRef.id
+        }
+    }
 
 }
 

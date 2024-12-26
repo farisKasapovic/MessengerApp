@@ -14,4 +14,6 @@
     <color name="blueText">#3290EC</color>
     <color name="linearBackground">#d7dadb</color>
     <color name="red">#FF0000</color>
+    <color name="messageRvBackground">#2274B3</color>
+    <color name="sendItemColor">#EFFEDD</color>
 </resources>

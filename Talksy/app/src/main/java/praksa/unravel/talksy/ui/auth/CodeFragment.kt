@@ -139,7 +139,6 @@ class CodeFragment : Fragment() {
     }
 
 
-
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
 

@@ -1,20 +1,15 @@
 package praksa.unravel.talksy.main.ui.contacts
 
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.main.domain.usecase.GetContactsUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
-
-import praksa.unravel.talksy.main.model.Contact
-import praksa.unravel.talksy.common.result.Result
+import praksa.unravel.talksy.main.domain.usecase.CreateChatUseCase
 import javax.inject.Inject
 
 
@@ -22,11 +17,13 @@ import javax.inject.Inject
 class ContactsViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
     private val getProfilePictureUrlUseCase: GetProfilePictureUrlUseCase,
+    private val createChatUseCase: CreateChatUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ContactsState>(ContactsState.Loading)
     val state: StateFlow<ContactsState> = _state
 
+    // init - svaki put kad se pokrene
     init {
         fetchContacts()
     }
@@ -53,6 +50,10 @@ class ContactsViewModel @Inject constructor(
         } catch (e: Exception) {
             null
         }
+    }
+
+    suspend fun createOrFetchChat(contactId: String): String {
+        return createChatUseCase.invoke(contactId)
     }
 
 

@@ -88,6 +88,7 @@
     <string name="faris_kasapovic">Faris Kasapovic</string>
     <string name="last_seen_recently">last seen recently.</string>
     <string name="enter_username">Enter username</string>
+    <string name="write_a_message">Write a message</string>
 
 
 </resources>

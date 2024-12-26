@@ -6,6 +6,6 @@ data class Contact(
     val firstName: String = "",
     val lastName: String = "",
     val phoneNumber: String = "",
-    val isOnline: Boolean = false, // Tracks online status
-    val lastSeen: Timestamp? = null // Stores last seen timestamp
+    val isOnline: Boolean = false,
+    val lastSeen: Timestamp? = null
 )
