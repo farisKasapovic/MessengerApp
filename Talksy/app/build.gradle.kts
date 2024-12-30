@@ -97,6 +97,9 @@ dependencies {
     // Firebase Cloud messaging
     implementation ("com.google.firebase:firebase-messaging")           // FCM dependency
 
+    implementation ("com.squareup.okhttp3:okhttp:4.11.0")
+
+
 
 
 

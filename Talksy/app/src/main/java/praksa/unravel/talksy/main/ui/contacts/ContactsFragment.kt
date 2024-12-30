@@ -1,5 +1,6 @@
 package praksa.unravel.talksy.main.ui.contacts
 import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,9 +14,14 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
 import praksa.unravel.talksy.R
+import praksa.unravel.talksy.databinding.ChatsFragmentBinding
+import praksa.unravel.talksy.databinding.ContactsFragmentBinding
 import praksa.unravel.talksy.main.model.Contact
 import praksa.unravel.talksy.ui.contacts.ContactsAdapter
 
@@ -23,6 +29,7 @@ import praksa.unravel.talksy.ui.contacts.ContactsAdapter
 @AndroidEntryPoint
 class ContactsFragment : Fragment() {
 
+    private lateinit var binding: ContactsFragmentBinding
     private val viewModel: ContactsViewModel by viewModels()
     private val activityStatusViewModel: UserStatusViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
@@ -34,13 +41,24 @@ class ContactsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.contacts_fragment, container, false)
-        val addIcon = view.findViewById<View>(R.id.addContactIV)
+
+        binding = ContactsFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val addIcon = binding.addContactIV
+//        val addIcon = view.findViewById<View>(R.id.addContactIV)
+
 
         addIcon.setOnClickListener { toggleMenuItems() }
 
-        recyclerView = view.findViewById(R.id.contactRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        //recyclerView = view.findViewById(R.id.contactRecyclerView)
+
+        binding.contactRecyclerView.layoutManager =LinearLayoutManager(requireContext())
+       // recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         adapter = ContactsAdapter(itemsList, { userId, imageView ->
             viewLifecycleOwner.lifecycleScope.launch {
@@ -56,11 +74,30 @@ class ContactsFragment : Fragment() {
             startChat(contact)
         })
 
-        recyclerView.adapter = adapter
+        binding.contactRecyclerView.adapter = adapter
+        //recyclerView.adapter = adapter
 
         observeViewModel()
         observeUserStatuses()
-        return view
+
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+                return@OnCompleteListener
+            }
+
+            // Get new FCM registration token
+            val token = task.result
+
+            Log.d("vidi","rezultat $token")
+
+            // Log and toast
+//            val msg = getString(R.string.msg_token_fmt, token)
+//            Log.d(TAG, msg)
+//            Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+        })
+
     }
 
     //Menu items for RecyclerView

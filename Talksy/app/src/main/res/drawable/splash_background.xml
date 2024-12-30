@@ -1,0 +1,9 @@
+<!-- res/drawable/splash_background.xml -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/blueBtn" /> <!-- Background color -->
+    <item
+        android:width="100dp"
+        android:height="100dp"
+        android:gravity="center"
+        android:drawable="@drawable/ic_talksy" /> <!-- Your logo -->
+</layer-list>

@@ -6,18 +6,19 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
-import praksa.unravel.talksy.main.domain.usecase.FetchChatsWithMessagesUseCase
-import praksa.unravel.talksy.main.domain.usecase.FetchChatsWithUserDetailsUseCase
+
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
-import praksa.unravel.talksy.main.domain.usecase.Najnoviji
+import praksa.unravel.talksy.main.domain.usecase.GetUnreadCountUseCase
+
+import praksa.unravel.talksy.main.domain.usecase.ObserveChatsUseCase
 import praksa.unravel.talksy.main.model.Chat
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatsViewModel @Inject constructor(
     private val getProfilePictureUrlUseCase: GetProfilePictureUrlUseCase,
-    private val najnoviji: Najnoviji
+    private val najnoviji: ObserveChatsUseCase,
+    private val getUnreadCountUseCase: GetUnreadCountUseCase
 ) : ViewModel() {
 
     private val _chatsState = MutableLiveData<List<Chat>>()
@@ -53,6 +54,15 @@ fun observeChats(userId: String) {
                 getProfilePictureUrlUseCase(userId)
         }catch (e: Exception){
             null
+        }
+    }
+
+    suspend fun getUnreadCount(chatId:String, userId: String): Int{
+        return try{
+            getUnreadCountUseCase(chatId, userId)
+        }catch (e: Exception){
+            Log.e("ChatsViewModel","Error fetching unread count")
+            0
         }
     }
 

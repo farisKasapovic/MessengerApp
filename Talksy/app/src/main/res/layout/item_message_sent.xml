@@ -15,6 +15,22 @@
         android:textColor="@color/black"
         android:layout_marginBottom="4dp" />
 
+    <!-- Image message -->
+    <ImageView
+        android:id="@+id/messageImage"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginBottom="4dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+    <ImageButton
+        android:id="@+id/playButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/playbutton"
+        android:visibility="gone" />
+
+
     <TextView
         android:id="@+id/messageTimestamp"
         android:layout_width="wrap_content"

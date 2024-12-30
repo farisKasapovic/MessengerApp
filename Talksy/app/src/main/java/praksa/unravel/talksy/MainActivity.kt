@@ -8,6 +8,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.facebook.FacebookSdk
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
+import praksa.unravel.talksy.main.data.services.NotificationManagerService
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -25,9 +26,23 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController
 
+        val notificationService = NotificationManagerService(this)
+        notificationService.registerFCMToken()
+
+
     }
 }
 
+
+
+// Unread messages logika
+/*
+
+- Kad god napise korisnik poruku unreadCount drugog usera se poveca
+- Kad god user udje DirectMessageFragmenta ili je vec unutar fragmenta za tog usera se unreadCount brise
+- Ispis je naravno unutar adaptera ChatsFragmenta
+
+*/
 
 
 

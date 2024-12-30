@@ -4,7 +4,7 @@ import praksa.unravel.talksy.main.data.repositories.DirectMessageRepository
 import praksa.unravel.talksy.main.model.Chat
 import javax.inject.Inject
 
-class Najnoviji @Inject constructor(
+class ObserveChatsUseCase @Inject constructor(
     private val directMessageRepository: DirectMessageRepository
 ) {
     fun invoke(
@@ -12,6 +12,6 @@ class Najnoviji @Inject constructor(
         onChatsUpdated: (List<Chat>) -> Unit,
         onError: (Exception) -> Unit
     ) {
-        directMessageRepository.najnoviji(userId, onChatsUpdated, onError)
+        directMessageRepository.observeChats(userId, onChatsUpdated, onError)
     }
 }

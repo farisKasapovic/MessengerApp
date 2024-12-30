@@ -88,7 +88,42 @@
         android:padding="8dp"
         android:clipToPadding="false"
         android:background="@color/messageRvBackground"
+        android:orientation="horizontal"
         />
+
+    <!-- Recording UI -->
+    <LinearLayout
+        android:id="@+id/recordingUI"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/messageInputLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/recordDurationTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0s"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:paddingEnd="8dp" />
+
+        <ProgressBar
+            android:id="@+id/recordLoader"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:indeterminate="false"
+            android:max="60"
+            android:progress="0"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:progressDrawable="@drawable/progress_bar_style" />
+    </LinearLayout>
 
 
     <LinearLayout
@@ -104,10 +139,10 @@
         android:elevation="4dp">
 
         <ImageView
+            android:id="@+id/recordButton"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:src="@drawable/emoji"
-
             />
 
         <EditText
@@ -125,6 +160,7 @@
             android:textColor="@color/black" />
 
         <ImageView
+            android:id="@+id/pickImageIV"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:src="@drawable/attach"

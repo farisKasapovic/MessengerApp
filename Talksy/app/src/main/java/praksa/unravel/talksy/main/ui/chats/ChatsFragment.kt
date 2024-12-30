@@ -40,12 +40,12 @@ class ChatsFragment : Fragment() {
 
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-        setupRecyclerView()
+        setupRecyclerView(userId)
         observeViewModel()
         viewModel.observeChats(userId)
     }
 
-    private fun setupRecyclerView() {
+    private fun setupRecyclerView(userUid:String) {
         chatAdapter = ChatAdapter(
             chats = emptyList(),
             onChatClick = { chatId ->
@@ -53,6 +53,12 @@ class ChatsFragment : Fragment() {
             },
             onProfilePictureLoad = { userId, imageView ->
                 loadProfilePicture(userId, imageView)
+            },
+            onUnreadCountFetch = { chatId, onUnreadCountReceived ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val unreadCount = viewModel.getUnreadCount(chatId, userUid)
+                    onUnreadCountReceived(unreadCount)
+                }
             }
         )
         binding.chatRV.apply {
@@ -85,11 +91,7 @@ class ChatsFragment : Fragment() {
                 .into(imageView)
         }
     }
-
 }
 
-//        binding.floatingActionButton.setOnClickListener{
-//            findNavController().navigate(R.id.action_chatsFragment_to_contactsFragment)
-//        }
 
 

@@ -51,6 +51,7 @@ class RegisterFragment : Fragment() {
             val email = binding.registerET2.text.toString()
             val phone = binding.registerET3.text.toString()
             val password = binding.registerET4.text.toString()
+            Log.d("telefon","telefon $phone")
             // +387 62 232323  +387 62 121212   +387 62 343434
             viewModel.startRegistration(
                 email,
@@ -171,10 +172,11 @@ class RegisterFragment : Fragment() {
                     }
 
                     is RegisterState.Failed -> {
-                        ToastUtils.showCustomToast(requireContext(), state.errorMessage)
+                        ToastUtils.showCustomToast(requireContext(), "${state.errorMessage}failano ")
+                        Log.d("fail","failano")
                     }
 
-                    else -> Unit  // without RegisterState.Loading
+                    else -> Unit
                 }
             }
         }

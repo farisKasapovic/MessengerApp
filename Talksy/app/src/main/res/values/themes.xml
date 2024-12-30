@@ -39,7 +39,7 @@
             <item name="android:paddingStart">16dp</item>
             <item name="android:paddingEnd">16dp</item>
             <item name="android:drawableTint">@color/white</item>
-            <item name="android:backgroundTint">@color/blueBtn</item>
+            <item name="android:backgroundTint">@color/white</item>
             <item name="android:background">@drawable/et_code_border</item>
         </style>
 
@@ -56,6 +56,12 @@
         <item name="tabBackground">?attr/selectableItemBackground</item>
         <item name="tabSelectedTextColor">@color/blueBtn</item>
     </style>
+
+    <!-- res/values/themes.xml -->
+    <style name="Theme.App.Splash" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
+
 
 
 

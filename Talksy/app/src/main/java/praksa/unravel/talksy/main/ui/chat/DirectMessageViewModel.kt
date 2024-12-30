@@ -1,5 +1,6 @@
 package praksa.unravel.talksy.main.ui.chat
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -9,11 +10,16 @@ import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.main.domain.UserStatusUsecase.GetUserStatusUseCase
+import praksa.unravel.talksy.main.domain.usecase.DeleteMessageUseCase
 import praksa.unravel.talksy.main.domain.usecase.FetchMessagesUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetUserInformationUseCase
+import praksa.unravel.talksy.main.domain.usecase.MarkMessagesAsSeenUseCase
+import praksa.unravel.talksy.main.domain.usecase.ObserveChatsUseCase
 import praksa.unravel.talksy.main.domain.usecase.ObserveMessageUseCase
+import praksa.unravel.talksy.main.domain.usecase.RecordVoiceMessageUseCase
 import praksa.unravel.talksy.main.domain.usecase.SendMessageUseCase
+import praksa.unravel.talksy.main.domain.usecase.UploadImageAndSendMessageUseCase
 import praksa.unravel.talksy.main.model.Message
 import javax.inject.Inject
 
@@ -24,7 +30,12 @@ class DirectMessageViewModel @Inject constructor(
     private val fetchMessagesUseCase: FetchMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val observeMessagesUseCase: ObserveMessageUseCase,
-    private val getUserStatusUseCase: GetUserStatusUseCase
+    private val getUserStatusUseCase: GetUserStatusUseCase,
+    private val deleteMessageUseCase: DeleteMessageUseCase,
+    private val markMessagesAsSeenUseCase: MarkMessagesAsSeenUseCase,
+    private val uploadImageAndSendMessageUseCase: UploadImageAndSendMessageUseCase,
+    private val recordVoiceMessageUseCase: RecordVoiceMessageUseCase
+
 ) : ViewModel() {
 
 
@@ -78,6 +89,7 @@ class DirectMessageViewModel @Inject constructor(
             _directMessageState.value = DirectMessageState.Error("User not logged in!")
             return
         }
+
         val message = Message(
             text = text,
             senderId = senderId,
@@ -121,10 +133,52 @@ class DirectMessageViewModel @Inject constructor(
         }
     }
 
+    fun markMessagesAsSeen(chatId: String) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                markMessagesAsSeenUseCase(chatId, userId)
+            } catch (e: Exception) {
+                Log.e("DirectMessageViewModel", "Error marking messages as seen: ${e.message}")
+            }
+        }
+    }
+
+
+    fun uploadImageAndSendMessage(chatId: String, imageUri: Uri) {
+        val senderId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                uploadImageAndSendMessageUseCase(chatId, imageUri, senderId)
+            } catch (e: Exception) {
+                Log.e("DirectMessageViewModel", "Error sending image: ${e.message}")
+            }
+        }
+    }
+
+
+    fun deleteMessage(messageId: String, chatId: String) {
+        viewModelScope.launch {
+            try {
+                deleteMessageUseCase(messageId,chatId)
+            } catch (e: Exception) {
+                Log.e("DirectMessageViewModel", "Error deleting message: ${e.message}")
+            }
+        }
+    }
+
+    fun sendVoiceMessage(chatId: String, filePath: String) {
+        val senderId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                recordVoiceMessageUseCase(chatId, filePath, senderId)
+            } catch (e: Exception) {
+                Log.e("DirectMessageViewModel", "Error sending voice message: ${e.message}")
+            }
+        }
+    }
+
 
 
 }
 
-
-
-// posaljem idChata -> vrati mi drugog usera
