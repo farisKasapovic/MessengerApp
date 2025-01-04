@@ -9,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import praksa.unravel.talksy.main.domain.GroupMessageUseCase.CreateGroupChatUseCase
+import praksa.unravel.talksy.main.domain.GroupMessageUseCase.MarkGroupMessagesAsSeenUseCase
+import praksa.unravel.talksy.main.domain.GroupMessageUseCase.SendGroupMessageUseCase
 import praksa.unravel.talksy.main.domain.UserStatusUsecase.GetUserStatusUseCase
 import praksa.unravel.talksy.main.domain.usecase.DeleteMessageUseCase
 import praksa.unravel.talksy.main.domain.usecase.FetchMessagesUseCase
@@ -34,9 +37,12 @@ class DirectMessageViewModel @Inject constructor(
     private val deleteMessageUseCase: DeleteMessageUseCase,
     private val markMessagesAsSeenUseCase: MarkMessagesAsSeenUseCase,
     private val uploadImageAndSendMessageUseCase: UploadImageAndSendMessageUseCase,
-    private val recordVoiceMessageUseCase: RecordVoiceMessageUseCase
+    private val recordVoiceMessageUseCase: RecordVoiceMessageUseCase,
+    private val createGroupChatUseCase: CreateGroupChatUseCase,
+    private val sendGroupMessageUseCase: SendGroupMessageUseCase,
+    private val markGroupMessagesAsSeenUseCase: MarkGroupMessagesAsSeenUseCase,
 
-) : ViewModel() {
+    ) : ViewModel() {
 
 
 
@@ -174,6 +180,42 @@ class DirectMessageViewModel @Inject constructor(
                 recordVoiceMessageUseCase(chatId, filePath, senderId)
             } catch (e: Exception) {
                 Log.e("DirectMessageViewModel", "Error sending voice message: ${e.message}")
+            }
+        }
+    }
+
+
+    fun createGroupChat(groupName: String, userIds: List<String>) {
+        viewModelScope.launch {
+            try {
+                createGroupChatUseCase(groupName, userIds)
+                Log.d("DirectMessageViewModel", "Group chat created successfully!")
+            } catch (e: Exception) {
+                Log.e("DirectMessageViewModel", "Error creating group chat: ${e.message}")
+            }
+        }
+    }
+
+
+    fun sendGroupMessage(chatId: String, message: Message) {
+        viewModelScope.launch {
+            try {
+                sendGroupMessageUseCase(chatId, message)
+                Log.d("DirectMessageViewModel", "Group message sent successfully!")
+            } catch (e: Exception) {
+                Log.e("DirectMessageViewModel", "Error sending group message: ${e.message}")
+            }
+        }
+    }
+
+
+    fun markGroupMessagesAsSeen(chatId: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                markGroupMessagesAsSeenUseCase(chatId, userId)
+                Log.d("DirectMessageViewModel", "Group messages marked as seen!")
+            } catch (e: Exception) {
+                Log.e("DirectMessageViewModel", "Error marking group messages as seen: ${e.message}")
             }
         }
     }

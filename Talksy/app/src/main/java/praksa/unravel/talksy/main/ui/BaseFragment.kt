@@ -37,7 +37,7 @@ class BaseFragment : Fragment() {
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.newContactFragment, R.id.directMessageFragment -> {
+                R.id.newContactFragment, R.id.directMessageFragment, R.id.groupChatFragment -> {
                     bottomNavigationView.visibility = View.GONE
                 }
                 else -> {

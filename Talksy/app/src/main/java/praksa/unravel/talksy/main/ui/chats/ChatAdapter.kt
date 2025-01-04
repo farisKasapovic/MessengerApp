@@ -35,8 +35,18 @@ class ChatAdapter(
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
         Log.d("ChatAdapter","vrijednost ${chats[position].name} and ${chats[position].lastMessage}")
         val chat = chats[position]
-        holder.chatName.text = chat.name // Ili ime drugog korisnika
-        holder.lastMessage.text = chat.lastMessage
+        holder.chatName.text = if (chat.isGroup) chat.groupName else chat.name
+        Log.d("ChatAdapter","vrijednost ${chat.isImage} i voice ${chat.isVoiceMessage}")
+
+        if(chat.isImage){
+          holder.lastMessage.text = "Photo message"
+        } else if( chat.isVoiceMessage){
+            holder.lastMessage.text = "Voice message"
+        }
+        else{
+            holder.lastMessage.text = chat.lastMessage
+        }
+
         onProfilePictureLoad(chat.users[1],holder.profilePicture)
         holder.lastMessageTime.text = formatTimestampToHour(chat.timestamp)
 

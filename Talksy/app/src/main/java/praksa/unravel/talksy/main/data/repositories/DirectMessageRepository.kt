@@ -78,44 +78,62 @@ class DirectMessageRepository @Inject constructor(
     }
 
 
+//    suspend fun sendMessage(chatId: String, message: Message) {
+//        try {
+//            val messageRef = firestore.collection("Chats")
+//                .document(chatId)
+//                .collection("Messages")
+//                .add(message)
+//                .await()
+//
+//            val messageId = messageRef.id
+//
+//            //Zbog brisanja poruka
+//            firestore.collection("Chats")
+//                .document(chatId)
+//                .collection("Messages")
+//                .document(messageId)
+//                .update("id", messageId)
+//                .await()
+//
+//            firestore.collection("Chats")
+//                .document(chatId)
+//                .update("lastMessage",message.text,
+//                    "timestamp",message.timestamp,
+//                    "isImage",message.imageUrl,
+//                    "isVoice",message.voiceUrl)
+//                .await()
+//
+//            val users = firestore.collection("Chats").document(chatId).get().await()
+//                .get("users") as? List<String>
+//            val recipientId = users?.firstOrNull { it != message.senderId }
+//
+//            if (recipientId != null) {
+//                incrementUnreadCount(chatId, recipientId)
+//            }
+//
+//        } catch (e: Exception) {
+//            Log.e("DirectMessageRepository", "Error sending message: ${e.message}")
+//            throw e
+//        }
+//    }
+
     suspend fun sendMessage(chatId: String, message: Message) {
         try {
-            val messageRef = firestore.collection("Chats")
-                .document(chatId)
-                .collection("Messages")
-                .add(message)
-                .await()
-
-            val messageId = messageRef.id
-
-            //Zbog brisanja poruka
-            firestore.collection("Chats")
-                .document(chatId)
-                .collection("Messages")
-                .document(messageId)
-                .update("id", messageId)
-                .await()
-
-            firestore.collection("Chats")
-                .document(chatId)
-                .update("lastMessage",message.text,
-                    "timestamp",message.timestamp)
-                .await()
-
-            val users = firestore.collection("Chats").document(chatId).get().await()
-                .get("users") as? List<String>
-            val recipientId = users?.firstOrNull { it != message.senderId }
-
-            if (recipientId != null) {
-                incrementUnreadCount(chatId, recipientId)
+            val chatDocument = firestore.collection("Chats").document(chatId).get().await()
+            val isGroup = chatDocument.getBoolean("isGroup") ?: false
+            Log.d("Check","provjera $isGroup -a")
+            if (isGroup) {
+                sendGroupMessage(chatId, message)
+            } else {
+                sendDirectMessage(chatId, message)
             }
-
-
         } catch (e: Exception) {
             Log.e("DirectMessageRepository", "Error sending message: ${e.message}")
             throw e
         }
     }
+
 
 
     //unchecked
@@ -232,8 +250,12 @@ class DirectMessageRepository @Inject constructor(
                     val chatsWithDetails = mutableListOf<Chat>()
 
                     snapshot.documents.forEach { document ->
-                        val chat = document.toObject(Chat::class.java)?.apply { id = document.id }
-                        Log.d("ovo ","ovo mi trenutno treba ${chat?.id}")
+                        val chat =  document.toObject(Chat::class.java)?.apply {
+                            id = document.id
+                            isImage = document.getString("isImage")?.isNotEmpty() ?: false
+                            isVoiceMessage = document.getString("isVoice")?.isNotEmpty() ?: false
+                        }
+                        Log.d("ovo ","ovo mi trenutno treba ${chat?.id} i ${chat?.isImage} and ${chat?.isVoiceMessage}")
                         if (chat != null) {
                             val users = document.get("users") as List<String>
                             val contactId = users.firstOrNull { it != userId }
@@ -271,7 +293,9 @@ class DirectMessageRepository @Inject constructor(
                                                                 name = user.username,
                                                                 lastMessage = lastMessageText,
                                                                 timestamp = chat.timestamp,
-                                                                users = chat.users
+                                                                users = chat.users,
+                                                                isImage = chat.isImage,
+                                                                isVoiceMessage = chat.isVoiceMessage
                                                             )
                                                         )
 
@@ -393,8 +417,131 @@ class DirectMessageRepository @Inject constructor(
 
 
 
+    suspend fun createGroupChat(groupName: String, userIds: List<String>):String {
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+            ?: throw IllegalStateException("User is not logged in")
+
+        // Ensure the current user's ID is included in the user list
+        val allUserIds = userIds.toMutableSet() // Use a set to avoid duplicates
+        allUserIds.add(currentUserId)
+
+        Log.d("prov","ovoje ${allUserIds.size}  i $allUserIds ali $userIds")
+
+        val chatId = firestore.collection("Chats").document().id
+        val chatData = hashMapOf(
+            "id" to chatId,
+            "users" to allUserIds.toList(),
+            "isGroup" to true,
+            "groupName" to groupName,
+            "lastMessage" to "",
+            "timestamp" to System.currentTimeMillis(),
+            "unreadCount" to allUserIds.toList().associateWith { 0 }
+        )
+        firestore.collection("Chats").document(chatId).set(chatData).await()
+        return chatId
+    }
+
+    private suspend fun sendDirectMessage(chatId: String, message: Message) {
+        try {
+            val messageRef = firestore.collection("Chats")
+                .document(chatId)
+                .collection("Messages")
+                .add(message)
+                .await()
+
+            val messageId = messageRef.id
+
+            // Ažuriranje ID poruke
+            firestore.collection("Chats")
+                .document(chatId)
+                .collection("Messages")
+                .document(messageId)
+                .update("id", messageId)
+                .await()
+
+            // Ažuriranje poslednje poruke
+            firestore.collection("Chats")
+                .document(chatId)
+                .update(
+                    "lastMessage", message.text,
+                    "timestamp", message.timestamp,
+                    "isImage", message.imageUrl,
+                    "isVoice", message.voiceUrl
+                ).await()
+
+            val users = firestore.collection("Chats").document(chatId).get().await()
+                .get("users") as? List<String>
+            val recipientId = users?.firstOrNull { it != message.senderId }
+
+            if (recipientId != null) {
+                incrementUnreadCount(chatId, recipientId)
+            }
+
+        } catch (e: Exception) {
+            Log.e("DirectMessageRepository", "Error sending direct message: ${e.message}")
+            throw e
+        }
+    }
 
 
+    suspend fun sendGroupMessage(chatId: String, message: Message) {
+        val messageRef = firestore.collection("Chats")
+            .document(chatId)
+            .collection("Messages")
+            .add(message)
+            .await()
+
+        val messageId = messageRef.id
+
+        firestore.collection("Chats")
+            .document(chatId)
+            .collection("Messages")
+            .document(messageId)
+            .update("id", messageId)
+            .await()
+
+        // Ažuriraj poslednju poruku i povećaj brojač za sve korisnike osim pošiljaoca
+        val chatDocument = firestore.collection("Chats").document(chatId).get().await()
+        val userIds = chatDocument.get("users") as List<String>
+
+        firestore.collection("Chats")
+            .document(chatId)
+            .update(
+                "lastMessage", message.text,
+                "timestamp", message.timestamp,
+                "isImage", message.imageUrl,
+                "isVoice", message.voiceUrl
+            ).await()
+
+        val updates = userIds.filter { it != message.senderId }.associateWith { FieldValue.increment(1) }
+        updates.forEach { (userId, increment) ->
+            firestore.collection("Chats").document(chatId).update("unreadCount.$userId", increment).await()
+        }
+    }
+
+    suspend fun markGroupMessagesAsSeen(chatId: String, userId: String) {
+        firestore.collection("Chats").document(chatId)
+            .update("unreadCount.$userId", 0)
+            .await()
+    }
+
+
+
+    suspend fun fetchImageMessages(chatId: String): List<String> {
+        return try {
+            firestore.collection("Chats")
+                .document(chatId)
+                .collection("Messages")
+                .whereNotEqualTo("imageUrl", null)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { it.getString("imageUrl") }
+        } catch (e: Exception) {
+            Log.e("DirectMessageRepository", "Error fetching image messages: ${e.message}")
+            emptyList()
+        }
+    }
 
 
 

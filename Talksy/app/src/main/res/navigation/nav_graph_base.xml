@@ -26,12 +26,28 @@
 
 
 
-    <!-- Premium Fragment -->
+    <!-- Profile Info Fragment -->
+<!--    <fragment-->
+<!--        android:id="@+id/profileFragment"-->
+<!--        android:name="praksa.unravel.talksy.m"-->
+<!--        android:label="Premium"-->
+<!--        tools:layout="@layout/premium_fragment" />-->
+
     <fragment
-        android:id="@+id/premiumFragment"
-        android:name="praksa.unravel.talksy.main.ui.premium.PremiumFragment"
-        android:label="Premium"
-        tools:layout="@layout/premium_fragment" />
+        android:id="@+id/profileFragment"
+        android:name="praksa.unravel.talksy.main.ui.profile.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/profile_fragment"
+        >
+        <action
+            android:id="@+id/action_profileFragment_to_groupChatFragment"
+            app:destination="@id/groupChatFragment" >
+            <argument
+                android:name="userId"
+                app:argType="string"/>
+
+        </action>
+    </fragment>
 
     <!-- Contacts Fragment -->
     <fragment
@@ -59,7 +75,18 @@
         android:id="@+id/directMessageFragment"
         android:name="praksa.unravel.talksy.main.ui.chat.DirectMessageFragment"
         android:label="Direct Message"
-        tools:layout="@layout/fragment_direct_message" />
+        tools:layout="@layout/fragment_direct_message" >
+
+        <action
+            android:id="@+id/action_directMessageFragment_to_profileFragment"
+            app:destination="@id/profileFragment">
+            <argument
+                android:name="chatId"
+                app:argType="string"/>
+        </action>
+
+
+    </fragment>
 
     <!-- Settings Fragment -->
     <fragment
@@ -74,5 +101,24 @@
         android:label="newContact"
         tools:layout="@layout/new_contact_fragment"
         />
+
+    <fragment
+        android:id="@+id/groupChatFragment"
+        android:name="praksa.unravel.talksy.main.ui.groupChat.GroupChatFragment"
+        android:label="groupChat"
+        tools:layout="@layout/fragment_group_chat"
+        >
+        <action
+            android:id="@+id/action_groupChatFragment_to_directMessageFragment"
+            app:destination="@id/directMessageFragment" >
+            <argument
+                android:name="chatId"
+                app:argType="string"/>
+            <argument
+                android:name="groupName"
+                app:argType="string"/>
+        </action>
+    </fragment>
+
 
 </navigation>

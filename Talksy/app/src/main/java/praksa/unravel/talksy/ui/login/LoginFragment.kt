@@ -150,17 +150,18 @@ class LoginFragment : Fragment() {
 
     private fun observeViewModel() {
 
-
         lifecycleScope.launchWhenStarted {
             viewModel.loginState.collectLatest { state ->
                 when (state) {
 
                     is LoginState.Success -> {
                         ToastUtils.showCustomToast(requireContext(), state.message)
+                        Log.d("Proba","uslo u loginState")
                         findNavController().navigate(R.id.action_loginFragment_to_baseFragment)
                     }
 
                     is LoginState.Error -> {
+                        Log.d("Proba","uslo u errorState")
                         ToastUtils.showCustomToast(requireContext(), state.errorMessage)
                     }
 
@@ -171,14 +172,23 @@ class LoginFragment : Fragment() {
                     is LoginState.ResetProblem -> {
                         ToastUtils.showCustomToast(requireContext(), state.resetProblem)
                     }
-
                     else -> Unit
 
                 }
             }
         }
-
     }
+    private fun setLoadingState(isLoading: Boolean) {
+        binding.loadingPB.visibility = if (isLoading) View.VISIBLE else View.GONE
+
+        // Disable/Enable UI elements
+        binding.loginBtn1.isEnabled = !isLoading
+        binding.loginBtn2.isEnabled = !isLoading
+        binding.loginBtn3.isEnabled = !isLoading
+        binding.loginET1.isEnabled = !isLoading
+        binding.loginET21.isEnabled = !isLoading
+    }
+
 
 
 }

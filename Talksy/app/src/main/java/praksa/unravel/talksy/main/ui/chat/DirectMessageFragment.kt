@@ -4,8 +4,9 @@ import android.Manifest
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.pm.PackageManager
-import android.media.MediaRecorder
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -33,8 +34,6 @@ import praksa.unravel.talksy.main.ui.contacts.formatLastSeen
 import praksa.unravel.talksy.model.User
 import praksa.unravel.talksy.utils.ToastUtils
 import praksa.unravel.talksy.utils.VoiceMessageHandler
-import java.io.File
-import java.io.IOException
 
 
 @AndroidEntryPoint
@@ -45,13 +44,11 @@ class DirectMessageFragment : Fragment() {
     private val currentUserId: String by lazy {
         FirebaseAuth.getInstance().currentUser?.uid ?: ""
     }
-    private lateinit var notificationService: NotificationManagerService
+
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var voiceMessageHandler: VoiceMessageHandler
     private var isRecording = false
     private lateinit var recordedFilePath: String
-    private var isPlaying = false
-    private var currentlyPlayingFile: String? = null
 
 
 
@@ -69,12 +66,17 @@ class DirectMessageFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         var chatId = arguments?.getString("chatId") ?: ""
 
-        binding.sendButton.setOnClickListener {
+        binding.sendIV.setOnClickListener {
             val text = binding.messageInput.text.toString().trim()
             if (text.isNotEmpty()) {
                 viewModel.sendMessage(chatId, text)
                 binding.messageInput.text.clear()
+                binding.messageInput.clearFocus(); // Oduzmi fokus nakon slanja
             }
+
+            binding.sendIV.visibility  = View.GONE
+            binding.pickImageIV.visibility = View.VISIBLE
+            binding.microphoneIV.visibility = View.VISIBLE
         }
 
         binding.backIV.setOnClickListener {
@@ -124,7 +126,29 @@ class DirectMessageFragment : Fragment() {
         notificationService.listenForNewMessages(chatId)
 
 
+      binding.dotsIV.setOnClickListener{
+          Log.d("Check","uslo u clickListener prije")
+          navigateToProfileFragment(chatId)
+          Log.d("Check","uslo u clickListener poslije")
+      }
 
+
+        //
+        binding.messageInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (s.isNullOrEmpty()) {
+                    toggleIconsForMessageInput(isEditing = false)
+                } else {
+                    toggleIconsForMessageInput(isEditing = true)
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+            }
+        })
     }
 
     private fun startVoiceRecording() {
@@ -133,9 +157,9 @@ class DirectMessageFragment : Fragment() {
         Log.d("Notify","uslo unutar startVoiceRecording")
 
         // Show the recording UI
-        binding.recordingUI.visibility = View.VISIBLE // Ensure this is executed
-        binding.recordDurationTextView.text = "0s" // Reset the duration text
-        binding.recordLoader.progress = 0 // Reset the loader progress
+        binding.recordingUI.visibility = View.VISIBLE
+        binding.recordDurationTextView.text = "0s"
+        binding.recordLoader.progress = 0
 
         Toast.makeText(requireContext(), "Recording started...", Toast.LENGTH_SHORT).show()
     }
@@ -155,8 +179,8 @@ class DirectMessageFragment : Fragment() {
 
 
     private fun updateRecordingUI(duration: Int) {
-        binding.recordDurationTextView.text = "${duration}s" // Update duration in seconds
-        binding.recordLoader.progress = duration // Update loader progress
+        binding.recordDurationTextView.text = "${duration}s"
+        binding.recordLoader.progress = duration
     }
 
 
@@ -165,20 +189,8 @@ class DirectMessageFragment : Fragment() {
     private fun updatePlaybackUI(playbackDuration: Int) {
         Log.d("DirectMessageFragment", "Playback progress updated: $playbackDuration seconds")
 
-        binding.recordDurationTextView.text = "$playbackDuration s" // Update duration
-        binding.recordLoader.progress = playbackDuration // Update progress bar
-    }
-
-
-    private fun stopPlayback() {
-        isPlaying = false
-        currentlyPlayingFile = null
-        voiceMessageHandler.stopPlayback()
-
-        // Reset playback UI
-        binding.recordingUI.visibility = View.GONE
-        binding.recordDurationTextView.text = "0s"
-        binding.recordLoader.progress = 0
+        binding.recordDurationTextView.text = "$playbackDuration s"
+        binding.recordLoader.progress = playbackDuration
     }
 
 
@@ -230,7 +242,12 @@ class DirectMessageFragment : Fragment() {
 
 
     private fun showUserDetails(user: User) {
-        binding.profileNameTV.text = user.username
+        val groupName = arguments?.getString("groupName")
+        if (groupName != null && groupName.isNotEmpty()) {
+            binding.profileNameTV.text = groupName // Display group name
+        } else {
+            binding.profileNameTV.text = user.username
+        }
         viewLifecycleOwner.lifecycleScope.launch {
 
             val profilePictureUrl = viewModel.getProfilePictureUrl(user.id)
@@ -333,10 +350,31 @@ class DirectMessageFragment : Fragment() {
         return true
     }
 
+    private fun navigateToProfileFragment(chatId: String) {
+        Log.d("Check","uslo u clickListener navigiranje")
+        val action = DirectMessageFragmentDirections.actionDirectMessageFragmentToProfileFragment(chatId)
+        Log.d("Check","uslo u clickListener poslije $action")
+        findNavController().navigate(action)
+        Log.d("Check","uslo u navigate posljednji")
+    }
+
+    private fun toggleIconsForMessageInput(isEditing: Boolean) {
+        if (isEditing) {
+            // Ako je EditText popunjen, prikaži samo ikonicu za slanje
+            binding.pickImageIV.visibility = View.GONE
+            binding.microphoneIV.visibility = View.GONE
+            binding.sendIV.visibility = View.VISIBLE
+        } else {
+            // Ako je EditText prazan, prikaži ikonice za slike i mikrofon
+            binding.pickImageIV.visibility = View.VISIBLE
+            binding.microphoneIV.visibility = View.VISIBLE
+            binding.sendIV.visibility = View.GONE
+        }
+    }
+
     private companion object {
         const val PERMISSION_REQUEST_CODE = 101
     }
-
 
 
 

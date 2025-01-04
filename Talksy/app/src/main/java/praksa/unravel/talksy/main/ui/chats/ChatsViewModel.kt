@@ -24,19 +24,7 @@ class ChatsViewModel @Inject constructor(
     private val _chatsState = MutableLiveData<List<Chat>>()
     val chatsState: LiveData<List<Chat>> = _chatsState
 
-//    fun fetchChats(userId: String) {
-//        viewModelScope.launch {
-//            try {
-//               // val chats = fetchChatsWithMessagesUseCase(userId)
-//                val chats = fetchChatsWithUserDetailsUseCase(userId)
-//                _chatsState.postValue(chats)
-//
-//            } catch (e: Exception) {
-//                Log.e("ChatsViewModel", "Error fetching chats: ${e.message}")
-//                _chatsState.postValue(emptyList())
-//            }
-//        }
-//    }
+
 fun observeChats(userId: String) {
     najnoviji.invoke(
         userId = userId,

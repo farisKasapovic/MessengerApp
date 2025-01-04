@@ -27,6 +27,7 @@ import praksa.unravel.talksy.domain.usecase.UploadProfilePictureUseCase
 import praksa.unravel.talksy.domain.usecases.DeleteUserFromAuthUseCase
 import praksa.unravel.talksy.main.data.repositories.DirectMessageRepository
 import praksa.unravel.talksy.main.domain.usecase.DeleteMessageUseCase
+import praksa.unravel.talksy.main.domain.usecase.FetchImageMessagesUseCase
 import praksa.unravel.talksy.main.domain.usecase.MarkMessagesAsSeenUseCase
 
 import javax.inject.Singleton
@@ -168,6 +169,12 @@ object Module {
     @Provides
     fun provideDeleteMessageUseCase(repository: DirectMessageRepository): DeleteMessageUseCase {
         return DeleteMessageUseCase(repository)
+    }
+    @Provides
+    fun provideFetchImageMessagesUseCase(
+        directMessageRepository: DirectMessageRepository
+    ): FetchImageMessagesUseCase {
+        return FetchImageMessagesUseCase(directMessageRepository)
     }
 
 

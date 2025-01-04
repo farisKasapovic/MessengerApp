@@ -176,10 +176,26 @@ class RegisterFragment : Fragment() {
                         Log.d("fail","failano")
                     }
 
+//                    is RegisterState.Loading -> {
+//                        setLoadingState(true)
+//                    }
                     else -> Unit
                 }
             }
         }
+    }
+
+    private fun setLoadingState(isLoading: Boolean) {
+        binding.loadingPB.visibility = if (isLoading) View.VISIBLE else View.GONE
+
+        // Disable other UI elements during loading
+        binding.registerBtn1.isEnabled = !isLoading
+        binding.registerBtn2.isEnabled = !isLoading
+        binding.registerBtn3.isEnabled = !isLoading
+        binding.registerET1.isEnabled = !isLoading
+        binding.registerET2.isEnabled = !isLoading
+        binding.registerET3.isEnabled = !isLoading
+        binding.registerET4.isEnabled = !isLoading
     }
 
 //    private fun navigateToCodeFragment(verificationId: String) {

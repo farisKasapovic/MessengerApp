@@ -77,7 +77,8 @@ class ChatsFragment : Fragment() {
             if (chats.isEmpty()) {
                 Toast.makeText(requireContext(), "No chats available", Toast.LENGTH_SHORT).show()
             } else {
-                chatAdapter.updateChats(chats)
+                val sortedChats = chats.sortedByDescending { it.timestamp }
+                chatAdapter.updateChats(sortedChats)
             }
         }
     }

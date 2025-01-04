@@ -5,5 +5,9 @@ data class Chat(
     val name: String = "",
     val lastMessage: String = "",
     val timestamp: Long = 0L,
-    val users: List<String> = emptyList()
+    val users: List<String> = emptyList(),
+    var isImage: Boolean = false,
+    var isVoiceMessage: Boolean = false,
+    val isGroup: Boolean = false,
+    val groupName: String? = null
 )

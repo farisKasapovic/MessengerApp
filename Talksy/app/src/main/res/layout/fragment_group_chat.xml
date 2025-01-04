@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <!-- Back Button and Group Name Input -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/groupNameContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            >
+
+            <ImageView
+                android:id="@+id/backButtonIV"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_back"
+                app:tint="@color/icons"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:contentDescription="Back Button"
+                android:layout_marginStart="8dp" />
+
+            <EditText
+                android:id="@+id/groupNameET"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Enter group name"
+                android:background="@android:color/transparent"
+                android:textSize="18sp"
+                android:padding="12dp"
+                app:layout_constraintStart_toEndOf="@id/backButtonIV"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Search Bar with Loop Icon -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/searchBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/groupNameContainer"
+            android:padding="8dp"
+            android:layout_marginTop="16dp">
+
+            <ImageView
+                android:id="@+id/searchIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/loop"
+                app:tint="@color/icons"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginStart="4dp" />
+
+            <EditText
+                android:id="@+id/searchET"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Search contacts"
+                android:background="@android:color/transparent"
+                android:paddingStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:textSize="16sp"
+                app:layout_constraintStart_toEndOf="@id/searchIcon"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Suggested TextView -->
+        <TextView
+            android:id="@+id/suggestedTV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Suggested"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/searchBar"
+            android:layout_marginTop="16dp" />
+
+        <!-- RecyclerView for Contacts -->
+
+
+        <!-- Create Group Chat Button -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/contactsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@android:color/holo_blue_light"
+            app:layout_constraintBottom_toTopOf="@id/createGroupChatButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/suggestedTV"
+            app:layout_constraintVertical_bias="0.0"
+            tools:listitem="@layout/item_group_chat_contact" />
+
+
+        <Button
+            android:id="@+id/createGroupChatButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Create Group Chat"
+            android:backgroundTint="@color/blueBtn"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

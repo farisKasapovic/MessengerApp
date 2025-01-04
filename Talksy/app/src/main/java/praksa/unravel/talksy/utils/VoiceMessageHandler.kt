@@ -53,7 +53,7 @@ class VoiceMessageHandler(
 
     // Stop recording
     fun stopRecording(): String {
-        handler.removeCallbacks(updateDurationRunnable) 
+        handler.removeCallbacks(updateDurationRunnable)
         try {
             mediaRecorder?.apply {
                 stop()

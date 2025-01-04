@@ -34,16 +34,24 @@ class MainActivity : AppCompatActivity() {
 }
 
 
+/*Pon + Uto */
+// Code Refactoring (.asFlow())
+// Loading statusi
+// Notifikacije pogledati jesu li dobre
+// Izbrisi sve kontakte
+// Izlistaj sve slike
+// Mikrofon ikonica, send...
+// Grupni Chat !!!!
+// Pozivi i VideoChat
+// Dark theme
 
-// Unread messages logika
-/*
 
-- Kad god napise korisnik poruku unreadCount drugog usera se poveca
-- Kad god user udje DirectMessageFragmenta ili je vec unutar fragmenta za tog usera se unreadCount brise
-- Ispis je naravno unutar adaptera ChatsFragmenta
+// UI FIXAJ
 
-*/
 
+//Solved
+//// U Chat fragmentu treba izbacivati po timestampu...
+//// Kada se posalje slika ili voiceMessage da u lastMessage pise slika i to, a ne nista
 
 
 
