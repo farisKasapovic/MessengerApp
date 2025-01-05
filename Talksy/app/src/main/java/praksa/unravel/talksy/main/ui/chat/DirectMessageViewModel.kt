@@ -14,6 +14,7 @@ import praksa.unravel.talksy.main.domain.GroupMessageUseCase.MarkGroupMessagesAs
 import praksa.unravel.talksy.main.domain.GroupMessageUseCase.SendGroupMessageUseCase
 import praksa.unravel.talksy.main.domain.UserStatusUsecase.GetUserStatusUseCase
 import praksa.unravel.talksy.main.domain.usecase.DeleteMessageUseCase
+import praksa.unravel.talksy.main.domain.usecase.FetchChatNameUseCase
 import praksa.unravel.talksy.main.domain.usecase.FetchMessagesUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetUserInformationUseCase
@@ -41,6 +42,7 @@ class DirectMessageViewModel @Inject constructor(
     private val createGroupChatUseCase: CreateGroupChatUseCase,
     private val sendGroupMessageUseCase: SendGroupMessageUseCase,
     private val markGroupMessagesAsSeenUseCase: MarkGroupMessagesAsSeenUseCase,
+    private val fetchChatNameUseCase: FetchChatNameUseCase
 
     ) : ViewModel() {
 
@@ -217,6 +219,15 @@ class DirectMessageViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("DirectMessageViewModel", "Error marking group messages as seen: ${e.message}")
             }
+        }
+    }
+
+    suspend fun getChatName(chatId: String): String? {
+        return try {
+            fetchChatNameUseCase(chatId)
+        } catch (e: Exception) {
+            Log.e("DirectMessageViewModel", "Error fetching chat name: ${e.message}")
+            null
         }
     }
 

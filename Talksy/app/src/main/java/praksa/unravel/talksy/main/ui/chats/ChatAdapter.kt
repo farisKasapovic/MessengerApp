@@ -35,8 +35,9 @@ class ChatAdapter(
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
         Log.d("ChatAdapter","vrijednost ${chats[position].name} and ${chats[position].lastMessage}")
         val chat = chats[position]
+        Log.d("Mukamije"," mukamije $chat")
         holder.chatName.text = if (chat.isGroup) chat.groupName else chat.name
-        Log.d("ChatAdapter","vrijednost ${chat.isImage} i voice ${chat.isVoiceMessage}")
+        Log.d("ChatAdapter","vrijednost  ${chat.id} and ${chat.isGroup} i voice ${chat.groupName} and ${chat.name}")
 
         if(chat.isImage){
           holder.lastMessage.text = "Photo message"
@@ -46,8 +47,12 @@ class ChatAdapter(
         else{
             holder.lastMessage.text = chat.lastMessage
         }
-
+        if (chat.isGroup) {
+            // Load group picture (optional: default icon for groups)
+            holder.profilePicture.setImageResource(R.drawable.dots)
+        } else {
         onProfilePictureLoad(chat.users[1],holder.profilePicture)
+        }
         holder.lastMessageTime.text = formatTimestampToHour(chat.timestamp)
 
         // Dohvati `unreadCount` i prikaži ga

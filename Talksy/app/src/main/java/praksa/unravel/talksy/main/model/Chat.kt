@@ -8,6 +8,6 @@ data class Chat(
     val users: List<String> = emptyList(),
     var isImage: Boolean = false,
     var isVoiceMessage: Boolean = false,
-    val isGroup: Boolean = false,
-    val groupName: String? = null
+    var isGroup: Boolean = false,
+    var groupName: String? = null
 )

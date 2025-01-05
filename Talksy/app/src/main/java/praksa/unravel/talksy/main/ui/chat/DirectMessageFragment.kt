@@ -223,7 +223,7 @@ class DirectMessageFragment : Fragment() {
             when (state) {
                 is DirectMessageState.Loading -> {}  //showLoading()
                 is DirectMessageState.UserSuccess -> {
-                    showUserDetails(state.user)
+                    showUserDetails(state.user,chatId)
                     viewModel.fetchUserStatus(state.user.id)
                 }
 
@@ -234,29 +234,33 @@ class DirectMessageFragment : Fragment() {
                     Toast.LENGTH_SHORT
                 ).show()
 
-                is DirectMessageState.UserStatus -> updateUserStatus(state.pair)
+                is DirectMessageState.UserStatus -> updateUserStatus(chatId,state.pair)
                 is DirectMessageState.ChatsSuccess -> {}//updateChats(state.chats)
             }
         }
     }
 
 
-    private fun showUserDetails(user: User) {
-        val groupName = arguments?.getString("groupName")
-        if (groupName != null && groupName.isNotEmpty()) {
-            binding.profileNameTV.text = groupName // Display group name
-        } else {
-            binding.profileNameTV.text = user.username
-        }
+    private fun showUserDetails(user: User, chatId: String) {
         viewLifecycleOwner.lifecycleScope.launch {
+            val groupName = viewModel.getChatName(chatId)
 
-            val profilePictureUrl = viewModel.getProfilePictureUrl(user.id)
-            Glide.with(requireContext())
-                .load(profilePictureUrl)
-                .placeholder(R.drawable.default_profile_picture)
-                .into(binding.profileImageIV)
+            if (!groupName.isNullOrEmpty()) {
+                binding.profileNameTV.text = groupName // Postavi ime grupe
+                binding.profileImageIV.setImageResource(R.drawable.dots) // Postavi sliku za grupu
+            } else {
+                if (user != null) {
+                    binding.profileNameTV.text = user.username
+                    val profilePictureUrl = viewModel.getProfilePictureUrl(user.id)
+                    Glide.with(requireContext())
+                        .load(profilePictureUrl)
+                        .placeholder(R.drawable.default_profile_picture)
+                        .into(binding.profileImageIV)
+                }
+            }
         }
     }
+
 
     private fun updateMessages(messages: List<Message>) {
         messageAdapter.updateMessages(messages)
@@ -267,13 +271,20 @@ class DirectMessageFragment : Fragment() {
         viewModel.markMessagesAsSeen(chatId)
     }
 
-    private fun updateUserStatus(status: Pair<String, Pair<Boolean, Timestamp?>>) {
+    private fun updateUserStatus(chatId: String,status: Pair<String, Pair<Boolean, Timestamp?>>) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val groupName = viewModel.getChatName(chatId)
         val isOnline = status.second.first
         val lastSeen = status.second.second
-        binding.activityStatusTV.text = if (isOnline) {
-            "Online"
-        } else {
-            formatLastSeen(lastSeen)
+            if (!groupName.isNullOrEmpty()) {
+                binding.activityStatusTV.text = ""
+    } else {
+                binding.activityStatusTV.text = if (isOnline) {
+                    "Online"
+                } else {
+                    formatLastSeen(lastSeen)
+                }
+    }
         }
     }
 

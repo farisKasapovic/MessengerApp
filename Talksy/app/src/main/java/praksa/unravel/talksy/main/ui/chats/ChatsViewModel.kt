@@ -30,6 +30,7 @@ fun observeChats(userId: String) {
         userId = userId,
         onChatsUpdated = { updatedChats ->
             _chatsState.postValue(updatedChats)
+            Log.d("vazno","vrike ${updatedChats.size}")
         },
         onError = { error ->
             Log.e("ChatsViewModel", "Error observing chats: ${error.message}")

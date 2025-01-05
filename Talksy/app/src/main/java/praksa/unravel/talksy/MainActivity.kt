@@ -39,19 +39,9 @@ class MainActivity : AppCompatActivity() {
 // Loading statusi
 // Notifikacije pogledati jesu li dobre
 // Izbrisi sve kontakte
-// Izlistaj sve slike
-// Mikrofon ikonica, send...
-// Grupni Chat !!!!
-// Pozivi i VideoChat
+// X // Pozivi i VideoChat
 // Dark theme
 
-
-// UI FIXAJ
-
-
-//Solved
-//// U Chat fragmentu treba izbacivati po timestampu...
-//// Kada se posalje slika ili voiceMessage da u lastMessage pise slika i to, a ne nista
 
 
 
