@@ -18,7 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.R
 import praksa.unravel.talksy.databinding.ChatsFragmentBinding
-
+import praksa.unravel.talksy.common.result.Result
 
 @AndroidEntryPoint
 class ChatsFragment : Fragment() {
@@ -85,11 +85,21 @@ class ChatsFragment : Fragment() {
 
     private fun loadProfilePicture(userId: String, imageView: ImageView) {
         viewLifecycleOwner.lifecycleScope.launch {
-            val profilePictureUrl = viewModel.getProfilePictureUrl(userId)
-            Glide.with(requireContext())
-                .load(profilePictureUrl)
-                .placeholder(R.drawable.default_profile_picture)
-                .into(imageView)
+            viewModel.getProfilePictureUrl(userId).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        val profilePictureUrl = result.data
+                        Glide.with(requireContext())
+                            .load(profilePictureUrl)
+                            .placeholder(R.drawable.default_profile_picture)
+                            .into(imageView)
+                    }
+                    is Result.Failure -> {
+                        Log.e("Profile", "Error loading profile picture: ${result.error.message}")
+                        imageView.setImageResource(R.drawable.default_profile_picture)
+                    }
+                }
+            }
         }
     }
 }

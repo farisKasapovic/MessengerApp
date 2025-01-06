@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/linearBackground"
+    android:background="@color/lightGray"
     >
 
     <TextView
@@ -22,10 +23,10 @@
 
         />
     <TextView
-        android:id="@+id/DoneTV"
+        android:id="@+id/LogOutTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/edit"
+        android:text="@string/log_out"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/EditProfileTV"
@@ -44,6 +45,7 @@
         android:layout_marginStart="18dp"
         android:background="@drawable/circular_image"
         android:scaleType="centerCrop"
+        android:clipToOutline="true"
         />
 
     <TextView
@@ -70,241 +72,32 @@
         android:layout_marginStart="6dp"
         />
     <TextView
+        android:id="@+id/phoneNumberTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toEndOf="@id/profileImageIV"
         app:layout_constraintTop_toTopOf="@id/profileImageIV"
         app:layout_constraintBottom_toBottomOf="@id/profileImageIV"
         android:layout_marginStart="10dp"
+        android:textColor="@color/black"
         android:text="+98 911 682 8684"
         />
     <TextView
+        android:id="@+id/usernameTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="mojtabatn"
+        android:textColor="@color/black"
         app:layout_constraintStart_toEndOf="@id/profileImageIV"
         app:layout_constraintBottom_toBottomOf="@id/profileImageIV"
         android:layout_marginStart="10dp"
         android:layout_marginBottom="2dp"
         />
-    <ImageView
-        android:id="@+id/storyIV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profileImageIV"
-        android:src="@drawable/story"
-        app:tint="@color/icons"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="22dp"
-        />
-    <TextView
-        android:id="@+id/storyTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@id/storyIV"
-        app:layout_constraintTop_toTopOf="@id/storyIV"
-        app:layout_constraintBottom_toBottomOf="@id/storyIV"
-        android:text="@string/my_stories"
-        android:textColor="@color/black"
-        android:layout_marginStart="16dp"
-        android:textSize="18sp"
-        />
-    <ImageView
-        android:id="@+id/walletIV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@id/storyIV"
-        app:layout_constraintTop_toBottomOf="@id/storyIV"
-        android:src="@drawable/wallet"
-        app:tint="@color/icons"
-        android:layout_marginTop="16dp"
-        />
-    <TextView
-        android:id="@+id/walletTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/wallet"
-        app:layout_constraintStart_toStartOf="@id/storyTV"
-        app:layout_constraintTop_toTopOf="@id/walletIV"
-        app:layout_constraintBottom_toBottomOf="@id/walletIV"
-        android:textSize="18sp"
-        android:textColor="@color/black"
-        />
-    <View
-        android:id="@+id/divider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginHorizontal="18dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/walletIV"
-        android:layout_marginTop="16dp"
-        android:background="@color/icons"
-        />
 
-    <TextView
-        android:id="@+id/settingsTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/settings"
-        android:textSize="18sp"
-        android:textColor="@color/black"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider"
-        android:layout_marginTop="16dp"
-        android:layout_marginHorizontal="18dp"
-        android:textStyle="bold"
-        />
-    <ImageView
-        android:id="@+id/phoneCallIV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/settingsTV"
-        android:src="@drawable/phonecall"
-        app:tint="@color/icons"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="22dp"
-        />
-    <TextView
-        android:id="@+id/phoneCallTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@+id/phoneCallIV"
-        app:layout_constraintTop_toTopOf="@id/phoneCallIV"
-        app:layout_constraintBottom_toBottomOf="@id/phoneCallIV"
-        android:text="@string/recent_calls"
-        android:textColor="@color/black"
-        android:layout_marginStart="16dp"
-        android:textSize="18sp"
-        />
-    <ImageView
-        android:id="@+id/DevicesIV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/device"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/phoneCallIV"
-        app:tint="@color/icons"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="16dp"
-        />
-    <TextView
-        android:id="@+id/DevicesTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/devices"
-        app:layout_constraintStart_toStartOf="@id/phoneCallTV"
-        app:layout_constraintTop_toTopOf="@id/DevicesIV"
-        app:layout_constraintBottom_toBottomOf="@id/DevicesIV"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        />
-    <ImageView
-        android:id="@+id/chatFolderIV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/DevicesIV"
-        android:src="@drawable/folder"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="16dp"
-        app:tint="@color/icons"
-        />
-    <TextView
-        android:id="@+id/chatFolderTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="@id/chatFolderIV"
-        app:layout_constraintBottom_toBottomOf="@id/chatFolderIV"
-        app:layout_constraintStart_toStartOf="@id/DevicesTV"
-        android:text="@string/chat_folders"
-        android:textSize="18sp"
-        android:textColor="@color/black"
-        />
-    <View
-        android:id="@+id/divider2"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginHorizontal="18dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/chatFolderIV"
-        android:background="@color/icons"
-        android:layout_marginTop="16dp"
-        />
-    <ImageView
-        android:id="@+id/notificationsIV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/notifications"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/divider2"
-        app:tint="@color/icons"
-        android:layout_marginHorizontal="18dp"
-        android:layout_marginTop="16dp"
-        />
-    <TextView
-        android:id="@+id/notificationsTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="@id/notificationsIV"
-        app:layout_constraintBottom_toBottomOf="@id/notificationsIV"
-        app:layout_constraintStart_toEndOf="@id/notificationsIV"
-        android:layout_marginStart="16dp"
-        android:text="@string/notifications_and_sound"
-        android:textSize="18sp"
-        android:textColor="@color/black"
-        />
-    <ImageView
-        android:id="@+id/privacySecurityIV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/lock"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginHorizontal="18dp"
-        app:layout_constraintTop_toBottomOf="@id/notificationsIV"
-        android:layout_marginTop="16dp"
-        app:tint="@color/icons"
-        />
-    <TextView
-        android:id="@+id/privacySecurityTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@id/notificationsTV"
-        app:layout_constraintTop_toTopOf="@id/privacySecurityIV"
-        app:layout_constraintBottom_toBottomOf="@id/privacySecurityIV"
-        android:text="@string/privacy_and_security"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        />
-    <ImageView
-        android:id="@+id/dataStorageIV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/clock"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/privacySecurityIV"
-        app:tint="@color/icons"
-        android:layout_marginHorizontal="18dp"
-        android:layout_marginTop="16dp"
-        />
-    <TextView
-        android:id="@+id/dataStorageTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/data_and_storage"
-        app:layout_constraintStart_toStartOf="@id/privacySecurityTV"
-        app:layout_constraintTop_toTopOf="@id/dataStorageIV"
-        app:layout_constraintBottom_toBottomOf="@id/dataStorageIV"
-        android:textSize="18sp"
-        android:textColor="@color/black"
-        />
-    <!-- ExpandableListView -->
 
 
 
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

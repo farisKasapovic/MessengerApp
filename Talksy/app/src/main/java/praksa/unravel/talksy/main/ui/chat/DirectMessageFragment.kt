@@ -34,6 +34,7 @@ import praksa.unravel.talksy.main.ui.contacts.formatLastSeen
 import praksa.unravel.talksy.model.User
 import praksa.unravel.talksy.utils.ToastUtils
 import praksa.unravel.talksy.utils.VoiceMessageHandler
+import praksa.unravel.talksy.common.result.Result
 
 
 @AndroidEntryPoint
@@ -71,7 +72,7 @@ class DirectMessageFragment : Fragment() {
             if (text.isNotEmpty()) {
                 viewModel.sendMessage(chatId, text)
                 binding.messageInput.text.clear()
-                binding.messageInput.clearFocus(); // Oduzmi fokus nakon slanja
+                binding.messageInput.clearFocus();
             }
 
             binding.sendIV.visibility  = View.GONE
@@ -108,7 +109,7 @@ class DirectMessageFragment : Fragment() {
         )
 
 
-        binding.recordButton.setOnClickListener {
+        binding.microphoneIV.setOnClickListener {
             if (checkAndRequestPermissions()) {
                 if (!isRecording) {
                     startVoiceRecording()
@@ -126,11 +127,34 @@ class DirectMessageFragment : Fragment() {
         notificationService.listenForNewMessages(chatId)
 
 
-      binding.dotsIV.setOnClickListener{
-          Log.d("Check","uslo u clickListener prije")
-          navigateToProfileFragment(chatId)
-          Log.d("Check","uslo u clickListener poslije")
-      }
+        binding.dotsIV.setOnClickListener {
+            viewModel.checkIfGroupChat(chatId)
+
+            viewModel.directMessageState.observe(viewLifecycleOwner) { state ->
+                when (state) {
+                    is DirectMessageState.GroupCheckSuccess -> {
+                        if (state.isGroup) {
+                            val action = DirectMessageFragmentDirections.actionDirectMessageFragmentToGroupChatInfoFragment(chatId)
+                            findNavController().navigate(action)
+                        } else {
+                            val action = DirectMessageFragmentDirections.actionDirectMessageFragmentToProfileFragment(chatId)
+                            findNavController().navigate(action)
+                        }
+                    }
+                    is DirectMessageState.Error -> {
+                        Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        // Ignore other states
+                    }
+                }
+            }
+        }
+
+
+
+
+
 
 
         //
@@ -223,8 +247,10 @@ class DirectMessageFragment : Fragment() {
             when (state) {
                 is DirectMessageState.Loading -> {}  //showLoading()
                 is DirectMessageState.UserSuccess -> {
+                    Log.d("Trenutno","trenutno mi treba ovo je li uslo u userSucces ${state.user.username}")
                     showUserDetails(state.user,chatId)
                     viewModel.fetchUserStatus(state.user.id)
+
                 }
 
                 is DirectMessageState.MessagesSuccess -> updateMessages(state.messages)
@@ -236,6 +262,7 @@ class DirectMessageFragment : Fragment() {
 
                 is DirectMessageState.UserStatus -> updateUserStatus(chatId,state.pair)
                 is DirectMessageState.ChatsSuccess -> {}//updateChats(state.chats)
+                is DirectMessageState.GroupCheckSuccess -> {}
             }
         }
     }
@@ -243,23 +270,39 @@ class DirectMessageFragment : Fragment() {
 
     private fun showUserDetails(user: User, chatId: String) {
         viewLifecycleOwner.lifecycleScope.launch {
+            Log.d("Trenutno", "Trenutno mi treba ovo USLI SMO U FUN $user ")
             val groupName = viewModel.getChatName(chatId)
 
+            Log.d("Trenutno", "Trenutno mi treba ovo $user")
+
             if (!groupName.isNullOrEmpty()) {
-                binding.profileNameTV.text = groupName // Postavi ime grupe
-                binding.profileImageIV.setImageResource(R.drawable.dots) // Postavi sliku za grupu
+                binding.profileNameTV.text = groupName
+                binding.profileImageIV.setImageResource(R.drawable.ic_group)
             } else {
                 if (user != null) {
                     binding.profileNameTV.text = user.username
-                    val profilePictureUrl = viewModel.getProfilePictureUrl(user.id)
-                    Glide.with(requireContext())
-                        .load(profilePictureUrl)
-                        .placeholder(R.drawable.default_profile_picture)
-                        .into(binding.profileImageIV)
+
+                    viewModel.getProfilePictureUrl(user.id).collect { result ->
+                        when (result) {
+                            is Result.Success -> {
+                                val profilePictureUrl = result.data
+                                Log.d("ovdje", "ppUrl $profilePictureUrl")
+                                Glide.with(requireContext())
+                                    .load(profilePictureUrl)
+                                    .placeholder(R.drawable.default_profile_picture)
+                                    .into(binding.profileImageIV)
+                            }
+                            is Result.Failure -> {
+                                Log.e("ovdje", "Error fetching profile picture: ${result.error.message}")
+                                binding.profileImageIV.setImageResource(R.drawable.default_profile_picture)
+                            }
+                        }
+                    }
                 }
             }
         }
     }
+
 
 
     private fun updateMessages(messages: List<Message>) {
@@ -326,14 +369,6 @@ class DirectMessageFragment : Fragment() {
         context?.let { ToastUtils.showCustomToast(it.applicationContext,"Message deleted") }
     }
 
-
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-
-    }
-
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -361,22 +396,14 @@ class DirectMessageFragment : Fragment() {
         return true
     }
 
-    private fun navigateToProfileFragment(chatId: String) {
-        Log.d("Check","uslo u clickListener navigiranje")
-        val action = DirectMessageFragmentDirections.actionDirectMessageFragmentToProfileFragment(chatId)
-        Log.d("Check","uslo u clickListener poslije $action")
-        findNavController().navigate(action)
-        Log.d("Check","uslo u navigate posljednji")
-    }
-
     private fun toggleIconsForMessageInput(isEditing: Boolean) {
         if (isEditing) {
-            // Ako je EditText popunjen, prikaži samo ikonicu za slanje
+
             binding.pickImageIV.visibility = View.GONE
             binding.microphoneIV.visibility = View.GONE
             binding.sendIV.visibility = View.VISIBLE
         } else {
-            // Ako je EditText prazan, prikaži ikonice za slike i mikrofon
+
             binding.pickImageIV.visibility = View.VISIBLE
             binding.microphoneIV.visibility = View.VISIBLE
             binding.sendIV.visibility = View.GONE
@@ -386,9 +413,6 @@ class DirectMessageFragment : Fragment() {
     private companion object {
         const val PERMISSION_REQUEST_CODE = 101
     }
-
-
-
 
 }
 

@@ -32,9 +32,6 @@ class LoginViewModel @Inject constructor(
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Loading)
     val loginState: StateFlow<LoginState> = _loginState
 
-
-
-
     fun loginUser(email: String,password: String) {
         viewModelScope.launch {
             loginUserUseCase(email, password).collectLatest { loginResult ->
@@ -83,16 +80,9 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-
-
-
-
-
-
     fun resetPassword(email: String) {
         viewModelScope.launch {
             _loginState.value = LoginState.Loading
-            Log.d("LoginViewModel", "ResetPassword: State set to Loading")
 
             try {
                 checkEmailExistsUseCase(email).collect { emailExistsResult ->

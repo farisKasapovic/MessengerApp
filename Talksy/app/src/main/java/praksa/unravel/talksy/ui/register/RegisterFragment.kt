@@ -81,7 +81,6 @@ class RegisterFragment : Fragment() {
     }
 
     @Deprecated("Deprecated in Java")
-    //Registeronactivitycallback
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RC_SIGN_IN) {
@@ -102,8 +101,6 @@ class RegisterFragment : Fragment() {
         val callbackManager = CallbackManager.Factory.create()
         val loginButton = LoginButton(requireContext())
         loginButton.setPermissions("email", "public_profile")
-
-
 
         loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
             override fun onSuccess(loginResult: LoginResult) {
@@ -172,14 +169,12 @@ class RegisterFragment : Fragment() {
                     }
 
                     is RegisterState.Failed -> {
-                        ToastUtils.showCustomToast(requireContext(), "${state.errorMessage}failano ")
-                        Log.d("fail","failano")
+                        ToastUtils.showCustomToast(requireContext(), "${state.errorMessage}")
                     }
 
-//                    is RegisterState.Loading -> {
-//                        setLoadingState(true)
-//                    }
-                    else -> Unit
+                    is RegisterState.Loading -> {
+                        setLoadingState(true)
+                    }
                 }
             }
         }
@@ -188,7 +183,6 @@ class RegisterFragment : Fragment() {
     private fun setLoadingState(isLoading: Boolean) {
         binding.loadingPB.visibility = if (isLoading) View.VISIBLE else View.GONE
 
-        // Disable other UI elements during loading
         binding.registerBtn1.isEnabled = !isLoading
         binding.registerBtn2.isEnabled = !isLoading
         binding.registerBtn3.isEnabled = !isLoading
@@ -197,17 +191,6 @@ class RegisterFragment : Fragment() {
         binding.registerET3.isEnabled = !isLoading
         binding.registerET4.isEnabled = !isLoading
     }
-
-//    private fun navigateToCodeFragment(verificationId: String) {
-//        val bundle = Bundle().apply {
-//            putString("verificationId", verificationId)
-//            putString("phone", binding.registerET3.text.toString())
-//            putString("username", binding.registerET1.text.toString())
-//            putString("email", binding.registerET2.text.toString())
-//            putString("password", binding.registerET4.text.toString())
-//        }
-//        findNavController().navigate(R.id.action_registerFragment_to_codeFragment, bundle)
-//    }
 
     private fun navigateToCodeFragment(verificationId: String) {
         // Instead of bundle we use this metod
@@ -221,9 +204,8 @@ class RegisterFragment : Fragment() {
         findNavController().navigate(action)
     }
 
-
     companion object {
-        private val RC_SIGN_IN = 9001 // Request code for Google Sign-In
+        private val RC_SIGN_IN = 9001
     }
 
 }

@@ -8,7 +8,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import praksa.unravel.talksy.common.result.Result
 import praksa.unravel.talksy.main.domain.GroupMessageUseCase.CreateGroupChatUseCase
 import praksa.unravel.talksy.main.domain.GroupMessageUseCase.MarkGroupMessagesAsSeenUseCase
 import praksa.unravel.talksy.main.domain.GroupMessageUseCase.SendGroupMessageUseCase
@@ -18,6 +21,7 @@ import praksa.unravel.talksy.main.domain.usecase.FetchChatNameUseCase
 import praksa.unravel.talksy.main.domain.usecase.FetchMessagesUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetUserInformationUseCase
+import praksa.unravel.talksy.main.domain.usecase.IsGroupChatUseCase
 import praksa.unravel.talksy.main.domain.usecase.MarkMessagesAsSeenUseCase
 import praksa.unravel.talksy.main.domain.usecase.ObserveChatsUseCase
 import praksa.unravel.talksy.main.domain.usecase.ObserveMessageUseCase
@@ -39,10 +43,8 @@ class DirectMessageViewModel @Inject constructor(
     private val markMessagesAsSeenUseCase: MarkMessagesAsSeenUseCase,
     private val uploadImageAndSendMessageUseCase: UploadImageAndSendMessageUseCase,
     private val recordVoiceMessageUseCase: RecordVoiceMessageUseCase,
-    private val createGroupChatUseCase: CreateGroupChatUseCase,
-    private val sendGroupMessageUseCase: SendGroupMessageUseCase,
-    private val markGroupMessagesAsSeenUseCase: MarkGroupMessagesAsSeenUseCase,
-    private val fetchChatNameUseCase: FetchChatNameUseCase
+    private val fetchChatNameUseCase: FetchChatNameUseCase,
+    private val isGroupChatUseCase: IsGroupChatUseCase,
 
     ) : ViewModel() {
 
@@ -54,41 +56,43 @@ class DirectMessageViewModel @Inject constructor(
 
     fun getUserInformation(chatId: String) {
         viewModelScope.launch {
-            _directMessageState.value = DirectMessageState.Loading
-            try {
-                val user = getUserInformationUseCase(chatId)
-                if (user != null) {
-                    _directMessageState.value = DirectMessageState.UserSuccess(user)
-                } else {
-                    _directMessageState.value = DirectMessageState.Error("User not found")
+            getUserInformationUseCase(chatId).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        _directMessageState.postValue(DirectMessageState.UserSuccess(result.data))
+                    }
+                    is Result.Failure -> {
+                        _directMessageState.postValue(
+                            DirectMessageState.Error("Failed to fetch user details: ${result.error.message}")
+                        )
+                    }
                 }
-            } catch (e: Exception) {
-                _directMessageState.value =
-                    DirectMessageState.Error("Failed to fetch user details: ${e.message}")
             }
         }
     }
 
-    suspend fun getProfilePictureUrl(userId: String): String? {
-        return try {
-            getProfilePictureUrlUseCase(userId)
-        } catch (e: Exception) {
-            null
-        }
+
+    fun getProfilePictureUrl(userId: String): Flow<Result<String?>> {
+        return getProfilePictureUrlUseCase(userId)
     }
 
     fun fetchMessages(chatId: String) {
         _directMessageState.value = DirectMessageState.Loading
         viewModelScope.launch {
-            try {
-                val messages = fetchMessagesUseCase(chatId)
-                _directMessageState.value = DirectMessageState.MessagesSuccess(messages)
-            } catch (e: Exception) {
-                Log.e("DirectMessageViewModel", "Error fetching messages: ${e.message}")
-                _directMessageState.value = DirectMessageState.Error("Error fetching messages")
+            fetchMessagesUseCase(chatId).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        _directMessageState.value = DirectMessageState.MessagesSuccess(result.data)
+                    }
+                    is Result.Failure -> {
+                        Log.e("DirectMessageViewModel", "Error fetching messages: ${result.error.message}")
+                        _directMessageState.value = DirectMessageState.Error("Error fetching messages")
+                    }
+                }
             }
         }
     }
+
 
     fun sendMessage(chatId: String, text: String) {
         val senderId = FirebaseAuth.getInstance().currentUser?.uid
@@ -97,7 +101,6 @@ class DirectMessageViewModel @Inject constructor(
             _directMessageState.value = DirectMessageState.Error("User not logged in!")
             return
         }
-
         val message = Message(
             text = text,
             senderId = senderId,
@@ -107,7 +110,7 @@ class DirectMessageViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 sendMessageUseCase(chatId, message)
-                fetchMessages(chatId) // Osvježi poruke nakon slanja
+                fetchMessages(chatId)
             } catch (e: Exception) {
                 Log.e("DirectMessageViewModel", "Error sending message: ${e.message}")
                 _directMessageState.value = DirectMessageState.Error("Error sending message")
@@ -115,7 +118,6 @@ class DirectMessageViewModel @Inject constructor(
         }
     }
 
-    //observing messages
     fun observeMessages(chatId: String) {
         observeMessagesUseCase.invoke(
             chatId = chatId,
@@ -187,49 +189,44 @@ class DirectMessageViewModel @Inject constructor(
     }
 
 
-    fun createGroupChat(groupName: String, userIds: List<String>) {
-        viewModelScope.launch {
-            try {
-                createGroupChatUseCase(groupName, userIds)
-                Log.d("DirectMessageViewModel", "Group chat created successfully!")
-            } catch (e: Exception) {
-                Log.e("DirectMessageViewModel", "Error creating group chat: ${e.message}")
-            }
-        }
-    }
-
-
-    fun sendGroupMessage(chatId: String, message: Message) {
-        viewModelScope.launch {
-            try {
-                sendGroupMessageUseCase(chatId, message)
-                Log.d("DirectMessageViewModel", "Group message sent successfully!")
-            } catch (e: Exception) {
-                Log.e("DirectMessageViewModel", "Error sending group message: ${e.message}")
-            }
-        }
-    }
-
-
-    fun markGroupMessagesAsSeen(chatId: String, userId: String) {
-        viewModelScope.launch {
-            try {
-                markGroupMessagesAsSeenUseCase(chatId, userId)
-                Log.d("DirectMessageViewModel", "Group messages marked as seen!")
-            } catch (e: Exception) {
-                Log.e("DirectMessageViewModel", "Error marking group messages as seen: ${e.message}")
-            }
-        }
-    }
-
     suspend fun getChatName(chatId: String): String? {
-        return try {
-            fetchChatNameUseCase(chatId)
-        } catch (e: Exception) {
-            Log.e("DirectMessageViewModel", "Error fetching chat name: ${e.message}")
-            null
+        return fetchChatNameUseCase(chatId)
+            .first { result ->
+                when (result) {
+                    is Result.Success -> {
+                        true
+                    }
+                    is Result.Failure -> {
+                        Log.e("DirectMessageViewModel", "Error fetching chat name: ${result.error.message}")
+                        true
+                    }
+                }
+            }.let { result ->
+                if (result is Result.Success) {
+                    result.data
+                } else {
+                    null
+                }
+            }
+    }
+
+    fun checkIfGroupChat(chatId: String) {
+        viewModelScope.launch {
+            isGroupChatUseCase(chatId).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        _directMessageState.postValue(DirectMessageState.GroupCheckSuccess(result.data))
+                    }
+                    is Result.Failure -> {
+                        _directMessageState.postValue(
+                            DirectMessageState.Error("Failed to check group chat status: ${result.error.message}")
+                        )
+                    }
+                }
+            }
         }
     }
+
 
 
 

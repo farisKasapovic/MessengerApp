@@ -4,8 +4,18 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import praksa.unravel.talksy.common.asFlow
+import praksa.unravel.talksy.common.mapSuccess
 import praksa.unravel.talksy.main.model.Contact
+import praksa.unravel.talksy.common.result.Result
 
 class ContactsRepository(
     private val auth: FirebaseAuth,
@@ -14,112 +24,105 @@ class ContactsRepository(
     private val userId
         get() = auth.currentUser?.uid ?: throw IllegalStateException("User not logged in")
 
-    suspend fun addContact(contact: Contact, addedUserId: String) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        if (userId == null) {
-            throw IllegalStateException("User not logged in")
-        }
-        try {
-            FirebaseFirestore.getInstance()
-                .collection("Users")
-                .document(userId)
-                .collection("contacts")
-                .document(addedUserId)
-                .set(contact)
-                .addOnSuccessListener { Log.d("Firestore", "Contact added successfully!") }
-                .addOnFailureListener { e -> Log.e("Firestore", "Error adding contact", e) }
-                .await()
-        } catch (e: Exception) {
-            Log.e("ContactsRepository", "Error: ${e.message}")
-            throw e
-        }
-    }
+fun addContact(contact: Contact, addedUserId: String): Flow<Result<Unit>> {
+    return db.collection("Users")
+        .document(userId)
+        .collection("contacts")
+        .document(addedUserId)
+        .set(contact)
+        .asFlow()
+        .mapSuccess { Unit }
+}
 
-    //Check if user exists in our database by phoneNumber, if not null + mail
-    suspend fun checkUserExistsByPhoneOrUsername(phoneNumber: String, username: String): String? {
+
+    fun checkUserExistsByPhoneOrUsername(phoneNumber: String, username: String): Flow<Result<String?>> = flow {
         val phoneQuery = db.collection("Users")
             .whereEqualTo("phone", phoneNumber)
             .get()
             .await()
 
         if (!phoneQuery.isEmpty) {
-            return phoneQuery.documents[0].id
+            emit(Result.Success(phoneQuery.documents[0].id))
+            return@flow
         }
 
-        val usernameQuery = db.collection("Users")
-            .whereEqualTo("username", username)
-            .get()
-            .await()
-
-        return if (!usernameQuery.isEmpty) {
-            usernameQuery.documents[0].id
-        } else {
-            null
-        }
-    }
-
-    suspend fun getContacts(): List<Contact> {
-        val snapshot =
+        emitAll(
             db.collection("Users")
-                .document(userId)
-                .collection("contacts")
+                .whereEqualTo("username", username)
                 .get()
-                .await()
-        return snapshot.toObjects(Contact::class.java)
+                .asFlow()
+                .mapSuccess { usernameQuery ->
+                    if (!usernameQuery.isEmpty) usernameQuery.documents[0].id else null
+                }
+        )
     }
 
-    suspend fun getProfilePictureUrl(userId: String): String? {
-        return try {
-            val path = "profile_pictures/$userId"
-            val storageRef = FirebaseStorage.getInstance().reference.child(path)
-            val downloadUrl = storageRef.downloadUrl.await().toString()
-            Log.d("FirebaseStorage", "Dohvaćen URL: $downloadUrl")
-            downloadUrl
-        } catch (e: Exception) {
-            Log.e("FirebaseStorage", "Greška pri dohvatu URL-a: ${e.message}", e)
-            null
+fun getContacts(): Flow<Result<List<Contact>>> {
+    return db.collection("Users")
+        .document(userId)
+        .collection("contacts")
+        .get()
+        .asFlow()
+        .mapSuccess { snapshot -> snapshot.toObjects(Contact::class.java) }
+}
+
+fun getProfilePictureUrl(userId: String): Flow<Result<String?>> {
+    Log.d("Checking", "Ovaj userId $userId")
+    val path = "profile_pictures/$userId"
+    Log.d("Checking", "Ovaj path $path")
+    val storageRef = FirebaseStorage.getInstance().reference.child(path)
+    return storageRef.downloadUrl.asFlow()
+        .mapSuccess { url ->
+            Log.d("Checking", "Download successful: $url")
+            url.toString()
         }
-    }
+        .catch { error ->
+            Log.e("Checking", "Error fetching download URL: ${error.message}", error)
+            emit(Result.Failure(error))
+        }
+}
 
-    suspend fun createOrFetchChat(contactId: String): String {
-        val existingChat =
-            db.collection("Chats")
-            .whereArrayContains("users", userId) // Current User exists in any array field of a document
+fun createOrFetchChat(contactId: String): Flow<Result<String>> {
+    return flow {
+        val existingChat = db.collection("Chats")
+            .whereArrayContains("users", userId)
             .get()
             .await()
             .documents.firstOrNull { document ->
-                val users = document.get("users") as List<*>
-                users.contains(contactId)
+                val users = document.get("users") as? List<*>
+                users?.contains(contactId) == true
             }
-        return if (existingChat != null) {
-            val lastMessageText = db.collection("Chats")
-                .document(existingChat.id)
-                .collection("Messages")
-                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(1)
-                .get()
-                .await()
-                .documents
-                .firstOrNull()
-                ?.getString("text") ?: "No messages yet" // Default text if no messages exist
 
-//            //Last message (small problem...)
-//            db.collection("Chats")
-//                .document(existingChat.id)
-//                .update("lastMessage",lastMessageText)
-//                .await()
-
-            existingChat.id
+        if (existingChat != null) {
+            emitAll(
+                db.collection("Chats")
+                    .document(existingChat.id)
+                    .collection("Messages")
+                    .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                    .limit(1)
+                    .get()
+                    .asFlow()
+                    .mapSuccess { messagesSnapshot ->
+                        val lastMessageText = messagesSnapshot.documents
+                            .firstOrNull()
+                            ?.getString("text") ?: "No messages yet"
+                        existingChat.id
+                    }
+            )
         } else {
             val newChat = hashMapOf(
                 "users" to listOf(userId, contactId),
                 "lastMessage" to "",
                 "timestamp" to System.currentTimeMillis()
             )
-            val chatRef = db.collection("Chats").add(newChat).await()
-            chatRef.id
+            emitAll(
+                db.collection("Chats")
+                    .add(newChat)
+                    .asFlow()
+                    .mapSuccess { it.id }
+            )
         }
     }
-
+  }
 }
 

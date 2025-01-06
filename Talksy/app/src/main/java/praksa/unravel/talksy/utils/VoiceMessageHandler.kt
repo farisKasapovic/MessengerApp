@@ -15,7 +15,6 @@ class VoiceMessageHandler(
 ) {
 
     private var mediaRecorder: MediaRecorder? = null
-    private var mediaPlayer: MediaPlayer? = null
     private var audioFilePath: String = ""
     private var duration = 0
     private val handler = Handler(Looper.getMainLooper())
@@ -42,7 +41,7 @@ class VoiceMessageHandler(
                 prepare()
                 start()
             }
-            handler.post(updateDurationRunnable) // Start tracking duration
+            handler.post(updateDurationRunnable)
         } catch (e: Exception) {
             Log.e("VoiceMessageHandler", "Error starting recording: ${e.message}")
             throw e
@@ -51,7 +50,6 @@ class VoiceMessageHandler(
         return audioFilePath
     }
 
-    // Stop recording
     fun stopRecording(): String {
         handler.removeCallbacks(updateDurationRunnable)
         try {

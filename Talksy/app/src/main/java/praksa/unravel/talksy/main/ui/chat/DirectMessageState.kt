@@ -12,4 +12,5 @@ sealed class DirectMessageState {
     data class Error(val message: String) : DirectMessageState()
     data class UserStatus(val pair: Pair<String,Pair<Boolean,Timestamp?>>): DirectMessageState()
     data class ChatsSuccess(val chats: List<Chat>) : DirectMessageState()
+    data class GroupCheckSuccess(val isGroup: Boolean) : DirectMessageState() // NEW STATE
 }

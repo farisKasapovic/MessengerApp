@@ -22,18 +22,16 @@ class MyFirebaseMessagingService() : FirebaseMessagingService() {
 
         Log.d("FCM", "Message received: $remoteMessage")
 
-        // Handle notification payload
         remoteMessage.notification?.let {
             val title = it.title ?: "New Message"
             val body = it.body ?: "You have a new message"
             showNotification(title, body, null)
         }
 
-        // Handle data payload
         remoteMessage.data.let { data ->
             val title = data["title"] ?: "New Message"
             val body = data["body"] ?: "You have a new message"
-            val chatId = data["chatId"] // Optional chat ID for navigation
+            val chatId = data["chatId"]
             showNotification(title, body, chatId)
         }
     }
@@ -41,7 +39,7 @@ class MyFirebaseMessagingService() : FirebaseMessagingService() {
     fun showNotification(title: String, body: String, chatId: String?) {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("chatId", chatId) // Pass chatId if available
+            putExtra("chatId", chatId)
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -53,7 +51,6 @@ class MyFirebaseMessagingService() : FirebaseMessagingService() {
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Create notification channel for Android O+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId, "Message Notifications", NotificationManager.IMPORTANCE_HIGH
@@ -61,11 +58,8 @@ class MyFirebaseMessagingService() : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
 
-
-
-        // Build notification
         val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.dots) // Replace with your actual notification icon
+            .setSmallIcon(R.drawable.dots)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -73,6 +67,6 @@ class MyFirebaseMessagingService() : FirebaseMessagingService() {
             .setContentIntent(pendingIntent)
             .build()
 
-        notificationManager.notify(chatId?.hashCode() ?: 0, notification) // Unique notification per chat
+        notificationManager.notify(chatId?.hashCode() ?: 0, notification)
     }
 }

@@ -4,9 +4,11 @@ package praksa.unravel.talksy.main.ui.contacts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import praksa.unravel.talksy.common.result.Result
 import praksa.unravel.talksy.main.domain.usecase.GetContactsUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
 import praksa.unravel.talksy.main.domain.usecase.CreateChatUseCase
@@ -23,39 +25,35 @@ class ContactsViewModel @Inject constructor(
     private val _state = MutableStateFlow<ContactsState>(ContactsState.Loading)
     val state: StateFlow<ContactsState> = _state
 
-    // init - svaki put kad se pokrene
     init {
         fetchContacts()
     }
 
     private fun fetchContacts() {
         viewModelScope.launch {
-            _state.value = ContactsState.Loading
-            try {
-
-                val contacts = getContactsUseCase()
-                if (contacts.isEmpty()) {
-                    _state.value = ContactsState.Empty
-                } else {
-                    _state.value = ContactsState.Success(contacts)
+            getContactsUseCase()
+                .collect { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            if (result.data.isEmpty()) {
+                                _state.value = ContactsState.Empty
+                            } else {
+                                _state.value = ContactsState.Success(result.data)
+                            }
+                        }
+                        is Result.Failure -> {
+                            _state.value = ContactsState.Error(result.error.message ?: "Greška pri dohvatanu kontakata")
+                        }
+                    }
                 }
-            } catch (e: Exception) {
-                _state.value = ContactsState.Error(e.message ?: "Greška pri dohvatanu kontakata")
-            }
-        }
-    }
-    suspend fun getProfilePictureUrl(userId: String): String? {
-        return try {
-            getProfilePictureUrlUseCase(userId)
-        } catch (e: Exception) {
-            null
         }
     }
 
-    suspend fun createOrFetchChat(contactId: String): String {
-        return createChatUseCase.invoke(contactId)
+    fun getProfilePictureUrl(userId: String): Flow<Result<String?>> {
+        return getProfilePictureUrlUseCase(userId)
     }
 
-
-
+    fun createOrFetchChat(contactId: String): Flow<Result<String>> {
+        return createChatUseCase(contactId)
+    }
 }

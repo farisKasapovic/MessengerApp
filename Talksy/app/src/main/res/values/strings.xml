@@ -90,6 +90,7 @@
     <string name="enter_username">Enter username</string>
     <string name="write_a_message">Write a message</string>
     <string name="create_a_group_chat">Create a group chat</string>
+    <string name="groupmembers">GroupMembers</string>
 
 
 </resources>

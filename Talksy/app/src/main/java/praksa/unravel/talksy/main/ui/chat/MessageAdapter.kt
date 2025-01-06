@@ -56,7 +56,6 @@ class MessageAdapter(
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
         val message = messages[position]
 
-        // Handle text message
         if (message.text.isNotEmpty()) {
             holder.messageText.visibility = View.VISIBLE
             holder.messageText.text = message.text
@@ -68,12 +67,11 @@ class MessageAdapter(
             holder.messageText.visibility = View.GONE
         }
 
-        // Handle image message
         if (!message.imageUrl.isNullOrEmpty()) {
             holder.messageImage.visibility = View.VISIBLE
             Glide.with(holder.itemView.context)
                 .load(message.imageUrl)
-                .placeholder(R.drawable.dots) // staviti error ovdje
+                .placeholder(R.drawable.dots)
                 .into(holder.messageImage)
 
             holder.messageImage.setOnClickListener{
@@ -109,7 +107,6 @@ class MessageAdapter(
         notifyDataSetChanged()
     }
 
-
     private fun playVoiceMessage(voiceUrl: String) {
         try {
             val mediaPlayer = MediaPlayer().apply {
@@ -118,9 +115,7 @@ class MessageAdapter(
                 start()
             }
 
-            mediaPlayer.setOnCompletionListener {
-                Log.d("s", "sve je top")
-            }
+            mediaPlayer.setOnCompletionListener {}
         } catch (e: Exception) {
             Log.e("MessageAdapter", "Error playing voice message: ${e.message}")
         }

@@ -147,20 +147,16 @@ class CodeFragment : Fragment() {
                     is CodeState.Idle -> {
                         //
                     }
-
                     is CodeState.Loading -> {
                         //
                     }
-
                     is CodeState.Success -> {
                         ToastUtils.showCustomToast(requireContext(), state.message)
                         findNavController().navigate(R.id.action_codeFragment_to_logout)
                     }
-
                     is CodeState.Error -> {
                         ToastUtils.showCustomToast(requireContext(), state.message)
                     }
-
                     else -> Unit
                 }
 

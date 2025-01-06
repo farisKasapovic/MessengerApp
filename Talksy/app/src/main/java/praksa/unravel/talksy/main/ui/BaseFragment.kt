@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -37,7 +38,8 @@ class BaseFragment : Fragment() {
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.newContactFragment, R.id.directMessageFragment, R.id.groupChatFragment,R.id.profileFragment -> {
+                R.id.newContactFragment, R.id.directMessageFragment, R.id.groupChatFragment,R.id.profileFragment,R.id.loginFragment, R.id.registerFragment,
+                     R.id.codeFragment,R.id.more_info-> {
                     bottomNavigationView.visibility = View.GONE
                 }
                 else -> {
@@ -47,6 +49,15 @@ class BaseFragment : Fragment() {
         }
         return view
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+            }
+        })
+    }
+
 
     override fun onStart() {
         super.onStart()

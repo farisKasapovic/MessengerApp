@@ -22,6 +22,7 @@ import praksa.unravel.talksy.main.ui.chat.DirectMessageState
 import praksa.unravel.talksy.main.ui.chat.DirectMessageViewModel
 import praksa.unravel.talksy.main.ui.contacts.formatLastSeen
 import praksa.unravel.talksy.model.User
+import praksa.unravel.talksy.common.result.Result
 
 @AndroidEntryPoint
 class ProfileFragment: Fragment() {
@@ -52,8 +53,13 @@ class ProfileFragment: Fragment() {
 
         binding.createGroupChatTV.setOnClickListener {
             val userId = viewModel.profileState.value?.let { state ->
-                if (state is ProfileState.UserSuccess) state.user.id else null
+                when (state) {
+                    is ProfileState.UserSuccess -> state.user.id
+                    is ProfileState.UserStatus -> state.pair.first
+                    else -> null
+                }
             }
+
             if (userId != null) {
                 val action = ProfileFragmentDirections.actionProfileFragmentToGroupChatFragment(userId)
                 findNavController().navigate(action)
@@ -61,6 +67,7 @@ class ProfileFragment: Fragment() {
                 Toast.makeText(requireContext(), "Failed to get user ID", Toast.LENGTH_SHORT).show()
             }
         }
+
 
 
     }
@@ -72,9 +79,12 @@ class ProfileFragment: Fragment() {
             when (state) {
                 is ProfileState.Error -> Toast.makeText(context,state.message,Toast.LENGTH_SHORT).show()
                 is ProfileState.Loading -> {Log.d("s","check")}
-                is ProfileState.UserStatus -> updateUserStatus(state.pair)
-                is ProfileState.UserSuccess -> { showUserDetails(state.user)
+                is ProfileState.UserStatus -> {
+                    updateUserStatus(state.pair)
+
                 }
+                is ProfileState.UserSuccess -> { showUserDetails(state.user)
+                    viewModel.fetchUserStatus(state.user.id)}
                 is ProfileState.ImagesSuccess -> setupRecyclerView(state.imageUrls)
             }
         }
@@ -95,11 +105,21 @@ class ProfileFragment: Fragment() {
         binding.myUsernameTV.text = user.username
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val profilePictureUrl = viewModel.getProfilePictureUrl(user.id)
-            Glide.with(requireContext())
-                .load(profilePictureUrl)
-                .placeholder(R.drawable.default_profile_picture)
-                .into(binding.profileImageIV)
+            viewModel.getProfilePictureUrl(user.id).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        val profilePictureUrl = result.data
+                        Glide.with(requireContext())
+                            .load(profilePictureUrl)
+                            .placeholder(R.drawable.default_profile_picture)
+                            .into(binding.profileImageIV)
+                    }
+                    is Result.Failure -> {
+                        Log.e("Profile", "Error loading profile picture: ${result.error.message}")
+                        binding.profileImageIV.setImageResource(R.drawable.default_profile_picture)
+                    }
+                }
+            }
         }
     }
 

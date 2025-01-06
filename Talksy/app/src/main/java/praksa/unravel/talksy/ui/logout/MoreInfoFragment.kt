@@ -7,6 +7,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -50,12 +52,25 @@ class MoreInfoFragment : Fragment() {
             pickImageFromGallery()
         }
 
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+
+            }
+        })
+
         binding.buttonDone.setOnClickListener {
-            val firstName = binding.firstNameET.text.toString()
-            val lastName = binding.lastNameET.text.toString()
-            val bio = binding.BioET.text.toString()
-            viewModel.updateUserInfo(firstName, lastName, bio)
+            val firstName = binding.firstNameET.text.toString().trim()
+            val lastName = binding.lastNameET.text.toString().trim()
+            val bio = binding.BioET.text.toString().trim()
+
+            if (firstName.isEmpty() || lastName.isEmpty() || bio.isEmpty()) {
+                Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            } else {
+                viewModel.updateUserInfo(firstName, lastName, bio)
+                findNavController().navigate(R.id.action_more_info_to_baseFragment)
+            }
         }
+
     }
 
     private fun pickImageFromGallery() {
@@ -79,8 +94,6 @@ class MoreInfoFragment : Fragment() {
                 when (it) {
                     is MoreInfoState.Loading -> Log.d("MoreInfoFragment", "Loading...")
                     is MoreInfoState.Success -> {populateUserData(it.user)
-                        findNavController().navigate(R.id.action_loginFragment_to_baseFragment)
-
                     }
                     is MoreInfoState.Error -> ToastUtils.showCustomToast(
                         requireContext(),
@@ -103,9 +116,7 @@ class MoreInfoFragment : Fragment() {
     }
 
     private fun populateUserData(user: User) {
-        binding.firstNameET.setText(user.firstName)
-        binding.lastNameET.setText(user.lastName)
-        binding.BioET.setText(user.bio)
-        binding.phoneNumberTV.text = user.phone
+        binding.myUsernameTV.text = user.username
+        binding.myPhoneNumberTV.text = user.phone
     }
 }

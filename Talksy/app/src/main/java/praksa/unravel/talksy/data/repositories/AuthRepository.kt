@@ -37,10 +37,9 @@ class AuthRepository(
     fun checkEmailExists(email: String): Flow<Result<Boolean>> =
         db.collection("Users")
             .whereEqualTo("email", email)
-            .get()  //  executes the query and return result as a QuerySnapshot
+            .get()
             .asFlow()
             .mapSuccess { data ->
-                Log.d("AuthRepository", "sta je ovo ovdje $data")
                 !data.isEmpty
             }
 
@@ -100,25 +99,18 @@ class AuthRepository(
         return firebaseAuth.currentUser?.delete()
             ?.asFlow()
             ?.mapSuccess { Unit }
-            ?: flowOf(Result.Failure(Exception("No user is logged in")))    // without if -> else
+            ?: flowOf(Result.Failure(Exception("No user is logged in")))
     }
 
 
-//    fun addUserToDatabase(user: User): Flow<Result<Unit>> =
-//        db.collection("Users")
-//            .add(user)
-//            .asFlow()
-//            .mapSuccess {
-//                Unit //Nothing
-//            }
 fun addUserToDatabase(user: User): Flow<Result<Unit>> {
     val userId = firebaseAuth.currentUser?.uid ?: return flowOf(Result.Failure(Exception("User not logged in")))
 
     return db.collection("Users")
-        .document(userId)  // Postavi UID kao ID dokumenta
-        .set(user)         // Postavi podatke korisnika
+        .document(userId)
+        .set(user)
         .asFlow()
-        .mapSuccess { Unit }  // Vraća uspešan rezultat
+        .mapSuccess { Unit }
 }
 
 
@@ -224,17 +216,11 @@ fun addUserToDatabase(user: User): Flow<Result<Unit>> {
     fun updateUserData(user: User, firstName: String, lastName: String, bio: String): Flow<Result<Unit>> {
         val userId = user.id.ifEmpty { firebaseAuth.currentUser?.uid ?: throw IllegalStateException("User not logged in") }
 
-        Log.d("AuthRepo","GRESKA: vrijednost userid $userId")
-        Log.d("AuthRepo","${user.id} and ${user.firstName} and ${user.lastName} and ${user.bio}")
-
         return db.collection("Users").document(userId)
-            //.set(updates, SetOptions.merge())
             .update("firstName",firstName,"lastName",lastName,"bio",bio)
             .asFlow()
             .mapSuccess { Unit }
     }
-
-
 
     fun uploadProfilePicture(uri: Uri): Flow<Result<String>> = flow {
         try {

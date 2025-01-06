@@ -18,6 +18,7 @@
         android:layout_marginTop="64dp"
         android:background="@drawable/circular_image"
         android:scaleType="centerCrop"
+        android:clipToOutline="true"
         />
     <TextView
         android:id="@+id/addNewPhotoTV"
@@ -40,6 +41,7 @@
         app:layout_constraintTop_toBottomOf="@id/addNewPhotoTV"
         android:layout_marginTop="48dp"
         android:layout_marginStart="18dp"
+        android:textColor="@color/gray"
         />
 
     <EditText
@@ -47,11 +49,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="18dp"
+        android:layout_marginTop="8dp"
+        android:hint="@string/first_name"
+        android:textColorHint="@color/gray"
+        app:layout_constraintEnd_toStartOf="@+id/lastNameET"
+        app:layout_constraintHorizontal_weight="1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/firstNameTV"
-        app:layout_constraintHorizontal_weight="1"
-        android:hint="@string/enter_your_first_name"
-        android:layout_marginTop="8dp"
+        android:textColor="@color/gray"
         />
 
     <TextView
@@ -59,6 +64,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/last_name"
+        android:textColor="@color/gray"
         app:layout_constraintTop_toTopOf="@id/firstNameTV"
         app:layout_constraintBottom_toBottomOf="@id/firstNameTV"
         app:layout_constraintStart_toEndOf="@id/firstNameTV"
@@ -70,12 +76,15 @@
         android:id="@+id/lastNameET"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/last_name"
+        android:textColorHint="@color/gray"
+        android:layout_marginEnd="18dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="1"
         app:layout_constraintStart_toStartOf="@id/lastNameTV"
         app:layout_constraintTop_toBottomOf="@id/lastNameTV"
-        android:layout_marginEnd="18dp"
-        app:layout_constraintHorizontal_weight="1"
-        android:hint="@string/enter_you_last_name"
-        android:layout_marginTop="8dp"
+        android:textColor="@color/gray"
         />
 
     <TextView
@@ -85,6 +94,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/firstNameET"
         android:text="@string/bio"
+        android:textColor="@color/gray"
         android:layout_marginStart="18dp"
         android:layout_marginTop="8dp"
         />
@@ -97,7 +107,9 @@
         app:layout_constraintTop_toBottomOf="@id/Bio"
         android:layout_marginHorizontal="18dp"
         android:hint="@string/add_your_bio"
+        android:textColorHint="@color/gray"
         android:layout_marginTop="8dp"
+        android:textColor="@color/gray"
         />
 
     <TextView
@@ -109,6 +121,7 @@
         android:layout_marginHorizontal="18dp"
         android:layout_marginTop="32dp"
         android:text="@string/phone_number"
+        android:textColor="@color/black"
         android:background="@color/linearBackground"
         android:padding="10dp"
         android:textSize="12sp"
@@ -126,19 +139,12 @@
         android:orientation="horizontal"
         >
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/myPhoneNumberTV"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="+98 911 682 8684"
             android:textColor="@color/black"
             android:layout_weight="1"
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/change"
-            android:textColor="@color/blueText"
-            android:textStyle="bold"
             />
 
     </LinearLayout>
@@ -152,6 +158,7 @@
         app:layout_constraintTop_toBottomOf="@id/linearLayout1"
         android:layout_marginHorizontal="18dp"
         android:textSize="12sp"
+        android:textColor="@color/black"
         android:padding="10dp"
         android:layout_marginTop="5dp"
         android:text="@string/username"
@@ -171,18 +178,12 @@
         android:layout_marginHorizontal="18dp"
         >
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/myUsernameTV"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/mojtabatn"
             android:textColor="@color/black"
             android:layout_weight="1"
-            />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/change"
-            android:textColor="@color/blueText"
-            android:textStyle="bold"
             />
 
     </LinearLayout>
@@ -193,7 +194,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/linearLayout2"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="@dimen/space_5xl"
         android:orientation="vertical"
         >
         <Button
@@ -206,16 +207,6 @@
             android:textAllCaps="false"
             />
 
-        <Button
-            android:id="@+id/buttonLogout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="18dp"
-            android:text="@string/log_out"
-            android:textAllCaps="false"
-            android:textColor="@color/red"
-
-            />
 
     </LinearLayout>
 

@@ -75,11 +75,18 @@
         android:id="@+id/directMessageFragment"
         android:name="praksa.unravel.talksy.main.ui.chat.DirectMessageFragment"
         android:label="Direct Message"
-        tools:layout="@layout/fragment_direct_message" >
+        tools:layout="@layout/fragment_direct_message">
 
         <action
             android:id="@+id/action_directMessageFragment_to_profileFragment"
             app:destination="@id/profileFragment">
+            <argument
+                android:name="chatId"
+                app:argType="string"/>
+        </action>
+        <action
+            android:id="@+id/action_directMessageFragment_to_groupChatInfoFragment"
+            app:destination="@id/groupChatInfoFragment" >
             <argument
                 android:name="chatId"
                 app:argType="string"/>
@@ -93,14 +100,22 @@
         android:id="@+id/settingsFragment"
         android:name="praksa.unravel.talksy.main.ui.settings.SettingsFragment"
         android:label="Settings"
-        tools:layout="@layout/settings_fragment" />
+        tools:layout="@layout/settings_fragment" >
+        <action
+            android:id="@+id/action_settingsFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/newContactFragment"
         android:name="praksa.unravel.talksy.main.ui.newcontact.NewContactFragment"
         android:label="newContact"
         tools:layout="@layout/new_contact_fragment"
-        />
+        >
+        <action
+            android:id="@+id/action_newContactFragment_to_contactsFragment"
+            app:destination="@id/contactsFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/groupChatFragment"
@@ -119,6 +134,22 @@
                 app:argType="string"/>
         </action>
     </fragment>
+
+    <fragment
+        android:id="@+id/groupChatInfoFragment"
+        android:name="praksa.unravel.talksy.main.ui.groupChatInfo.GroupChatInfoFragment"
+        android:label="groupChatInfo"
+        tools:layout="@layout/fragment_group_chat_info"
+        />
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="praksa.unravel.talksy.ui.login.LoginFragment"
+        android:label="loginFragment"
+        tools:layout="@layout/fragment_login"
+        />
+
+
 
 
 </navigation>

@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import praksa.unravel.talksy.R
 import praksa.unravel.talksy.databinding.FragmentRegisterBinding
@@ -46,6 +47,7 @@ class NewContactFragment : Fragment() {
                 Toast.makeText(requireContext(), "Sva polja su obavezna!", Toast.LENGTH_SHORT).show()
             } else {
                 val contact = Contact(
+                    username = username,
                     firstName = firstName,
                     lastName = lastName,
                     phoneNumber = phoneNumber
@@ -62,7 +64,7 @@ class NewContactFragment : Fragment() {
             when (state) {
                 is NewContactState.Success -> {
                     Toast.makeText(requireContext(), "Kontakt uspješno dodat!", Toast.LENGTH_SHORT).show()
-                    requireActivity().onBackPressed()
+                    findNavController().navigate(R.id.action_newContactFragment_to_contactsFragment)
                 }
                 is NewContactState.Error -> {
                     Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()

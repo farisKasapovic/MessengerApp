@@ -43,7 +43,6 @@ class GroupChatFragment : Fragment() {
         setupRecyclerView()
         observeViewModel()
 
-        // Fetch contacts and enrich them in the ViewModel
         binding.createGroupChatButton.setOnClickListener {
             val groupName = binding.groupNameET.text.toString().trim()
             if (groupName.isEmpty()) {
@@ -57,9 +56,6 @@ class GroupChatFragment : Fragment() {
                 }
             }
         }
-
-
-
         viewModel.fetchContacts()
     }
 

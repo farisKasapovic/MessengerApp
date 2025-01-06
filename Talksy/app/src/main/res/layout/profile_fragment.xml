@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="18dp"
         android:layout_marginStart="18dp"
-        android:src="@drawable/left"
+        android:src="@drawable/ic_back"
         app:tint="@color/icons"
         />
 
@@ -52,7 +52,7 @@
         app:layout_constraintTop_toBottomOf="@id/profileNameTV"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:text="last seen recently"
+        android:textColor="@color/gray"
         android:layout_marginTop="8dp"
         />
 
@@ -61,6 +61,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/bio"
+        android:textColor="@color/gray"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/activityStatusTV"
         android:layout_marginTop="24dp"
@@ -94,6 +95,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/username"
+        android:textColor="@color/gray"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/div1"
         android:layout_marginTop="12dp"
@@ -158,52 +160,31 @@
         android:background="@color/icons"
         />
 
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tablayoutTL"
+    <TextView
+        android:id="@+id/mediaTV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/div3"
-        style="@style/customTabLayout"
-        app:tabTextAppearance="@android:style/TextAppearance.Widget.TabWidget"
-        >
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/posts"
-            />
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/media"
-            />
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/files"
-            />
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/voice"
-            />
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/links"
-            />
-    </com.google.android.material.tabs.TabLayout>
+        android:text="@string/media"
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:layout_marginStart="18dp"
+        android:layout_marginVertical="18dp"
+
+        />
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/galleryRV"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="18dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tablayoutTL"
-        />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mediaTV" />
     <!-- Po tri slike u jednom itemu -->
 
 

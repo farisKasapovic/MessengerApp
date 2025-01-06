@@ -1,6 +1,5 @@
 package praksa.unravel.talksy.ui.register
 
-import praksa.unravel.talksy.common.exception.InvalidPasswordException
 
 object InputFieldValidator {
 

@@ -4,7 +4,7 @@
         <!-- Customize your light theme here. -->
         <item name="colorPrimary">@color/white</item>
         <item name="android:windowBackground">@color/white</item> <!-- background color -->
-        <item name="android:statusBarColor">@color/white</item>   <!-- Status bar color -->
+        <item name="android:statusBarColor">@color/lightGray</item>   <!-- Status bar color -->
         <item name="android:navigationBarColor">@color/white</item>
     </style>
 

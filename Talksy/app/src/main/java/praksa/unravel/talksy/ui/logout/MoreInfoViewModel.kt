@@ -46,7 +46,6 @@ class MoreInfoViewModel @Inject constructor(
     fun updateUserInfo(firstName: String, lastName: String, bio: String) {
         viewModelScope.launch {
             val user = (userState.value as? MoreInfoState.Success)?.user ?: return@launch
-           // val updatedUser = user.copy(firstName = firstName, lastName = lastName, bio = bio)
             updateUserInfoUseCase(user,firstName,lastName,bio).collect { result ->
                 if (result is Result.Success) {
                     fetchUserInfo()

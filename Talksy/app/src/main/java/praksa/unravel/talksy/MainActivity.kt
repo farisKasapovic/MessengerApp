@@ -1,6 +1,7 @@
 package praksa.unravel.talksy
 
 import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
@@ -16,7 +17,7 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         setContentView(R.layout.activity_main)
         //Initialize fb SDK
@@ -28,20 +29,7 @@ class MainActivity : AppCompatActivity() {
 
         val notificationService = NotificationManagerService(this)
         notificationService.registerFCMToken()
-
-
     }
 }
-
-
-/*Pon + Uto */
-// Code Refactoring (.asFlow())
-// Loading statusi
-// Notifikacije pogledati jesu li dobre
-// Izbrisi sve kontakte
-// X // Pozivi i VideoChat
-// Dark theme
-
-
 
 

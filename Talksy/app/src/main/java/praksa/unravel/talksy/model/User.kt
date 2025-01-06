@@ -3,7 +3,7 @@ package praksa.unravel.talksy.model
 import com.google.firebase.Timestamp
 
 data class User(
-    val id: String = "",
+    var id: String = "",
     val username: String = "",
     val email: String = "",
     val phone: String = "",

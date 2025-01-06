@@ -13,7 +13,4 @@
         android:id="@+id/settingsFragment"
         android:icon="@drawable/settings"   />
 
-    <item android:title="@string/premium"
-        android:id="@+id/premiumFragment"
-        android:icon="@drawable/star"       />
 </menu>

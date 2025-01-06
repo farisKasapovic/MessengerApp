@@ -6,6 +6,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import praksa.unravel.talksy.common.result.Result
 
 import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetUnreadCountUseCase
@@ -17,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatsViewModel @Inject constructor(
     private val getProfilePictureUrlUseCase: GetProfilePictureUrlUseCase,
-    private val najnoviji: ObserveChatsUseCase,
+    private val observeChatsUseCase: ObserveChatsUseCase,
     private val getUnreadCountUseCase: GetUnreadCountUseCase
 ) : ViewModel() {
 
@@ -26,11 +29,10 @@ class ChatsViewModel @Inject constructor(
 
 
 fun observeChats(userId: String) {
-    najnoviji.invoke(
+    observeChatsUseCase.invoke(
         userId = userId,
         onChatsUpdated = { updatedChats ->
             _chatsState.postValue(updatedChats)
-            Log.d("vazno","vrike ${updatedChats.size}")
         },
         onError = { error ->
             Log.e("ChatsViewModel", "Error observing chats: ${error.message}")
@@ -38,21 +40,23 @@ fun observeChats(userId: String) {
     )
 }
 
-    suspend fun getProfilePictureUrl(userId: String):String?{
-        return try{
-                getProfilePictureUrlUseCase(userId)
-        }catch (e: Exception){
-            null
-        }
+    fun getProfilePictureUrl(userId: String): Flow<Result<String?>> {
+        return getProfilePictureUrlUseCase(userId)
     }
 
-    suspend fun getUnreadCount(chatId:String, userId: String): Int{
-        return try{
-            getUnreadCountUseCase(chatId, userId)
-        }catch (e: Exception){
-            Log.e("ChatsViewModel","Error fetching unread count")
-            0
-        }
+    suspend fun getUnreadCount(chatId: String, userId: String): Int {
+        return getUnreadCountUseCase(chatId, userId)
+            .first()
+            .let { result ->
+                when (result) {
+                    is Result.Success -> result.data
+                    is Result.Failure -> {
+                        Log.e("ChatsViewModel", "Error fetching unread count: ${result.error.message}")
+                        0
+                    }
+                }
+            }
     }
+
 
 }

@@ -8,8 +8,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import praksa.unravel.talksy.common.result.Result
 import praksa.unravel.talksy.main.domain.GroupMessageUseCase.CreateGroupChatUseCase
 import praksa.unravel.talksy.main.domain.UserStatusUsecase.GetUserStatusUseCase
 import praksa.unravel.talksy.main.domain.usecase.GetContactsUseCase
@@ -33,53 +35,65 @@ class GroupChatViewModel @Inject constructor(
 
     fun fetchContacts() {
         viewModelScope.launch {
-            try {
-                val contactList = getContactsUseCase()
-                Log.d("GroupChatViewModel", "Fetched contacts: $contactList")
-
-                // Enrich contact data
-                val enrichedContacts = contactList.map { contact ->
-                    val profilePictureUrl = getProfilePictureUrlUseCase(contact.id)
-
-                    contact.copy(
-                        profilePictureUrl = profilePictureUrl,
-
-                    )
+            getContactsUseCase()
+                .collect { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            val contactList = result.data
+                            val enrichedContacts = contactList.map { contact ->
+                                val profilePictureUrlResult = getProfilePictureUrlUseCase(contact.id)
+                                    .first()
+                                when (profilePictureUrlResult) {
+                                    is Result.Success -> contact.copy(profilePictureUrl = profilePictureUrlResult.data)
+                                    is Result.Failure -> {
+                                        Log.e("GroupChatViewModel", "Error fetching profile picture: ${profilePictureUrlResult.error}")
+                                        contact
+                                    }
+                                }
+                            }
+                            _contacts.value = enrichedContacts
+                        }
+                        is Result.Failure -> {
+                            Log.e("GroupChatViewModel", "Error fetching contacts: ${result.error}")
+                        }
+                    }
                 }
-
-                _contacts.value = enrichedContacts
-                Log.d("GroupChatViewModel", "Enriched contacts: $enrichedContacts")
-            } catch (e: Exception) {
-                Log.e("GroupChatViewModel", "Error fetching or enriching contacts: ${e.message}")
-            }
         }
     }
+
+
+
     fun toggleContactSelection(userId: String, isSelected: Boolean) {
         val currentSelection = _selectedUserIds.value.orEmpty().toMutableSet()
         if (isSelected) currentSelection.add(userId) else currentSelection.remove(userId)
         _selectedUserIds.value = currentSelection
     }
 
-    fun createGroupChat(groupName: String, preselectedUser: String, onGroupChatCreated: (String) -> Unit) {
-        viewModelScope.launch {
-            try {
-                val userIds = _selectedUserIds.value.orEmpty().toMutableSet().apply {
-                    add(preselectedUser)
-                }.toList()
+fun createGroupChat(groupName: String, preselectedUser: String, onGroupChatCreated: (String) -> Unit) {
+    viewModelScope.launch {
+        val userIds = _selectedUserIds.value.orEmpty().toMutableSet().apply {
+            add(preselectedUser)
+        }.toList()
 
-                if (userIds.isEmpty()) {
-                    Log.e("GroupChatViewModel", "No users selected!")
-                    return@launch
+        if (userIds.isEmpty()) {
+            Log.e("GroupChatViewModel", "No users selected!")
+            return@launch
+        }
+
+        createGroupChatUseCase(groupName, userIds).collect { result ->
+            when (result) {
+                is Result.Success -> {
+                    val chatId = result.data
+                    onGroupChatCreated(chatId)
                 }
-
-                val chatId = createGroupChatUseCase(groupName, userIds)
-                Log.d("GroupChatViewModel", "Group chat created successfully with ID: $chatId")
-                onGroupChatCreated(chatId) // Pass the chatId back to the UI for navigation
-            } catch (e: Exception) {
-                Log.e("GroupChatViewModel", "Error creating group chat: ${e.message}")
+                is Result.Failure -> {
+                    Log.e("GroupChatViewModel", "Error creating group chat: ${result.error.message}")
+                }
             }
         }
     }
+}
+
 
 
 

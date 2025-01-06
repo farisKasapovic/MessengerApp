@@ -46,6 +46,7 @@
         app:layout_constraintBottom_toBottomOf="@id/pictureIV"
         app:layout_constraintStart_toEndOf="@id/pictureIV"
         android:text="@string/last_seen_recently"
+        android:textColor="@color/black"
         android:layout_marginHorizontal="10dp"
         android:layout_marginBottom="10dp"
         />

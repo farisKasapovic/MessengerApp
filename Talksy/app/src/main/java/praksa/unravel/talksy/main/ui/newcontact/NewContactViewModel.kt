@@ -9,7 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import praksa.unravel.talksy.main.domain.usecase.AddContactUseCase
 import praksa.unravel.talksy.main.domain.usecase.CheckUserExistsByPhoneOrUsername
-import praksa.unravel.talksy.main.domain.usecase.GetProfilePictureUrlUseCase
+import praksa.unravel.talksy.common.result.Result
 import praksa.unravel.talksy.main.model.Contact
 import javax.inject.Inject
 
@@ -22,27 +22,28 @@ class NewContactViewModel @Inject constructor(
     private val _state = MutableLiveData<NewContactState>()
     val state: LiveData<NewContactState> = _state
 
-
-    fun addContact(contact: Contact,phoneNumber:String,username: String) {
+    fun addContact(contact: Contact, phoneNumber: String, username: String) {
         viewModelScope.launch {
-            val addedUserId = checkUserExistsByPhoneOrUsername(phoneNumber,username)
-            if(addedUserId!=null){
-                contact.id = addedUserId
-                _state.value = NewContactState.Success
-            } else {
-                _state.value = NewContactState.Error("Korisnik ne koristi nasu aplikaciju")
-                return@launch
-            }
-            _state.value = NewContactState.Loading
-            try {
-                addContactUseCase(contact,addedUserId)
-                _state.value = NewContactState.Success
-            } catch (e: Exception) {
-                _state.value = NewContactState.Error(e.message ?: "Greška prilikom čuvanja kontakta")
-            }
+            checkUserExistsByPhoneOrUsername(phoneNumber, username)
+                .collect { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            val addedUserId = result.data
+                            if (addedUserId != null) {
+                                contact.id = addedUserId
+                                addContactUseCase(contact, addedUserId).collect { addResult ->
+                                    when (addResult) {
+                                        is Result.Success -> _state.postValue(NewContactState.Success)
+                                        is Result.Failure -> _state.postValue(NewContactState.Error(addResult.error.message ?: "Greška"))
+                                    }
+                                }
+                            } else {
+                                _state.postValue(NewContactState.Error("Korisnik ne koristi našu aplikaciju"))
+                            }
+                        }
+                        is Result.Failure -> _state.postValue(NewContactState.Error(result.error.message ?: "Greška"))
+                    }
+                }
         }
     }
-
-
-
 }

@@ -40,7 +40,7 @@
         android:id="@+id/LetsTalkTV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_6xl"
+        android:layout_marginTop="@dimen/space_4xl"
         android:text="@string/let_s_talk_with_your_friends_and_family_wherever_and_whenever"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -55,7 +55,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/LetsTalkTV"
-        android:layout_marginTop="@dimen/space_8xl"
+        android:backgroundTint="@color/blueBtn"
+        android:layout_marginBottom="@dimen/space_6xl"
         android:text="@string/continue_with_phone"
         />
 

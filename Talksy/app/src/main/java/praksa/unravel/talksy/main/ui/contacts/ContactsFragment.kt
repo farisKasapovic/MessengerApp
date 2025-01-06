@@ -24,7 +24,7 @@ import praksa.unravel.talksy.databinding.ChatsFragmentBinding
 import praksa.unravel.talksy.databinding.ContactsFragmentBinding
 import praksa.unravel.talksy.main.model.Contact
 import praksa.unravel.talksy.ui.contacts.ContactsAdapter
-
+import praksa.unravel.talksy.common.result.Result
 
 @AndroidEntryPoint
 class ContactsFragment : Fragment() {
@@ -32,7 +32,6 @@ class ContactsFragment : Fragment() {
     private lateinit var binding: ContactsFragmentBinding
     private val viewModel: ContactsViewModel by viewModels()
     private val activityStatusViewModel: UserStatusViewModel by viewModels()
-    private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ContactsAdapter
     private val itemsList = mutableListOf<Any>()
 
@@ -50,15 +49,9 @@ class ContactsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val addIcon = binding.addContactIV
-//        val addIcon = view.findViewById<View>(R.id.addContactIV)
-
-
         addIcon.setOnClickListener { toggleMenuItems() }
 
-        //recyclerView = view.findViewById(R.id.contactRecyclerView)
-
         binding.contactRecyclerView.layoutManager =LinearLayoutManager(requireContext())
-       // recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         adapter = ContactsAdapter(itemsList, { userId, imageView ->
             viewLifecycleOwner.lifecycleScope.launch {
@@ -75,7 +68,6 @@ class ContactsFragment : Fragment() {
         })
 
         binding.contactRecyclerView.adapter = adapter
-        //recyclerView.adapter = adapter
 
         observeViewModel()
         observeUserStatuses()
@@ -86,21 +78,14 @@ class ContactsFragment : Fragment() {
                 Log.w(TAG, "Fetching FCM registration token failed", task.exception)
                 return@OnCompleteListener
             }
-
-            // Get new FCM registration token
             val token = task.result
 
             Log.d("vidi","rezultat $token")
 
-            // Log and toast
-//            val msg = getString(R.string.msg_token_fmt, token)
-//            Log.d(TAG, msg)
-//            Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
         })
 
     }
 
-    //Menu items for RecyclerView
     private fun toggleMenuItems() {
         val isMenuPresent = itemsList.any { it is MenuType }
 
@@ -129,15 +114,11 @@ class ContactsFragment : Fragment() {
         }
     }
 
-
-// Standardno
     private fun observeViewModel() {
         lifecycleScope.launchWhenStarted {
             viewModel.state.collect { state ->
                 when (state) {
-                    is ContactsState.Loading -> {
-                        // Prikaz loading indikatora
-                    }
+                    is ContactsState.Loading -> {}
                     is ContactsState.Success -> {
                         itemsList.clear()
                         itemsList.addAll(state.contacts)
@@ -160,7 +141,6 @@ class ContactsFragment : Fragment() {
             activityStatusViewModel.status.collect { status ->
                 val (userId, userStatus) = status ?: return@collect
 
-                // Find the corresponding contact and update its status
                 val contactIndex = itemsList.indexOfFirst { it is Contact && it.id == userId }
                 Log.d("ContactsFragment","vrijednost: $contactIndex")
                 if (contactIndex != -1) {
@@ -183,15 +163,19 @@ class ContactsFragment : Fragment() {
         }
     }
 
-
     private fun startChat(contact: Contact) {
         lifecycleScope.launch {
-            try {
-                val chatId = viewModel.createOrFetchChat(contact.id)
-               navigateToChatsFragment(chatId)
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Failed to start chat: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+            viewModel.createOrFetchChat(contact.id)
+                .collect { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            navigateToChatsFragment(result.data)
+                        }
+                        is Result.Failure -> {
+                            Toast.makeText(requireContext(), "Failed to start chat: ${result.error.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
         }
     }
 

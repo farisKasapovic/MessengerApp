@@ -10,11 +10,11 @@ import praksa.unravel.talksy.domain.usecase.SendVerificationCodeUseCase
 import praksa.unravel.talksy.domain.usecase.VerifyPhoneNumberWithCodeUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dagger.hilt.internal.processedrootsentinel.ProcessedRootSentinel
 import praksa.unravel.talksy.domain.usecase.CheckPhoneNumberExistsUseCase
 import praksa.unravel.talksy.domain.usecase.CheckUsernameExistsUseCase
 import praksa.unravel.talksy.domain.usecase.LoginUserUseCase
@@ -26,6 +26,7 @@ import praksa.unravel.talksy.domain.usecase.UpdateUserInfoUseCase
 import praksa.unravel.talksy.domain.usecase.UploadProfilePictureUseCase
 import praksa.unravel.talksy.domain.usecases.DeleteUserFromAuthUseCase
 import praksa.unravel.talksy.main.data.repositories.DirectMessageRepository
+import praksa.unravel.talksy.main.data.repositories.UserRepository
 import praksa.unravel.talksy.main.domain.usecase.DeleteMessageUseCase
 import praksa.unravel.talksy.main.domain.usecase.FetchImageMessagesUseCase
 import praksa.unravel.talksy.main.domain.usecase.MarkMessagesAsSeenUseCase
@@ -51,6 +52,16 @@ object Module {
         firestore: FirebaseFirestore
     ): AuthRepository {
         return AuthRepository(firebaseAuth, firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(
+        firestore: FirebaseFirestore,
+         storage: FirebaseStorage,
+        auth: FirebaseAuth
+    ): UserRepository {
+        return UserRepository(firestore,storage,auth)
     }
 
     @Provides
@@ -141,30 +152,6 @@ object Module {
     fun provideMarkMessagesAsSeenUseCase(repository: DirectMessageRepository):MarkMessagesAsSeenUseCase {
         return MarkMessagesAsSeenUseCase(repository)
     }
-
-
-//    @Provides
-//    fun provideFetchUserFcmTokenUseCase(notRepository: NotificationRepository):FetchUserFcmTokenUseCase{
-//        return FetchUserFcmTokenUseCase(notRepository)
-//    }
-//
-//   @Provides
-//   fun provideSaveUserFcmTokenUseCase(notRepository: NotificationRepository): SaveUserFcmTokenUseCase {
-//       return SaveUserFcmTokenUseCase(notRepository)
-//   }
-//
-//    @Provides
-//    fun provideSendNotificationToUserUseCase(notRepository: NotificationRepository): SendNotificationToUserUseCase{
-//        return SendNotificationToUserUseCase(notRepository)
-//    }
-//
-//    @Provides
-//    @Singleton
-//    fun provideNotificationRepository(
-//        firestore: FirebaseFirestore
-//    ): NotificationRepository {
-//        return NotificationRepository(firestore)
-//    }
 
     @Provides
     fun provideDeleteMessageUseCase(repository: DirectMessageRepository): DeleteMessageUseCase {

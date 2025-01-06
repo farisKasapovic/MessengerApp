@@ -24,9 +24,6 @@ fun <T> Task<T>.asFlow() = callbackFlow<Result<T>> {
     awaitClose { /* leave empty */ }
 }
 
-
-
-
 fun <T, R> Flow<Result<T>>.mapSuccess(success: (data: T) -> R): Flow<Result<R>> {
     Log.d("Task",success.toString())
     return this.mapLatest { data ->
@@ -36,7 +33,6 @@ fun <T, R> Flow<Result<T>>.mapSuccess(success: (data: T) -> R): Flow<Result<R>> 
         }
     }
 }
-// ova ekstenzija mapira uspjesan rezultat iz jednog tipa T u drugi R
 
 fun <T, R: Throwable> Flow<Result<out T>>.mapError(errorData: (data: Throwable) -> R): Flow<Result<T>> {
     return this.mapLatest { data ->
@@ -47,11 +43,6 @@ fun <T, R: Throwable> Flow<Result<out T>>.mapError(errorData: (data: Throwable) 
     }
 }
 
-
-
-// Koristi se za kreiranje flowa koji emituje vijednosti iz callbackova
-// awaitClose signalizira zavrsetak emitovanja
-// Pretvara Task u Flow<Result<T>>
 
 
 

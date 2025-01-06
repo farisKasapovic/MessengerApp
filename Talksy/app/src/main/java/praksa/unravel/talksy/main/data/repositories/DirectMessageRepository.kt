@@ -7,136 +7,86 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
+import praksa.unravel.talksy.common.asFlow
+import praksa.unravel.talksy.common.mapSuccess
 import praksa.unravel.talksy.main.model.Chat
 import praksa.unravel.talksy.main.model.Message
 import praksa.unravel.talksy.model.User
 import java.io.File
 import javax.inject.Inject
+import praksa.unravel.talksy.common.result.Result
 
 class DirectMessageRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth
 ) {
 
+    fun getUserInformation(chatId: String): Flow<Result<User?>> {
+        return firestore.collection("Chats")
+            .document(chatId)
+            .get()
+            .asFlow()
+            .flatMapConcat { result ->
+                when (result) {
+                    is Result.Success -> {
+                        val chatSnapshot = result.data
+                        val users = chatSnapshot.get("users") as? List<String>
+                        val contactId = users?.firstOrNull { it != auth.currentUser?.uid }
 
-    // Fetch the second user's details from the chat document
-    suspend fun getUserInformation(chatId: String): User? {
-        return try {
-            val chatDocument = firestore.collection("Chats").document(chatId).get().await()
-            val users = chatDocument.get("users") as? List<String>
-
-            if (users != null) {
-                val contactId = users.firstOrNull { it != auth.currentUser?.uid }
-                if (contactId != null) {
-                    val userDocument =
-                        firestore.collection("Users").document(contactId).get().await()
-                    userDocument.toObject(User::class.java)
-                } else {
-                    null
+                        if (contactId != null) {
+                            firestore.collection("Users")
+                                .document(contactId)
+                                .get()
+                                .asFlow()
+                                .mapSuccess { userSnapshot ->
+                                    userSnapshot.toObject(User::class.java)
+                                }
+                        } else {
+                            flowOf(Result.Success(null))
+                        }
+                    }
+                    is Result.Failure -> flowOf(Result.Failure(result.error))
                 }
-            } else {
-                null
             }
-        } catch (e: Exception) {
-            null
-        }
     }
 
-    //Fetching messages
-//    suspend fun fetchMessages(chatId: String): List<Message> {
-//        return try {
-//            firestore.collection("Chats")
-//                .document(chatId)
-//                .collection("Messages")
-//                .orderBy("timestamp")
-//                .get()
-//                .await()
-//                .toObjects(Message::class.java)
-//        } catch (e: Exception) {
-//            emptyList()
-//        }
-//    }
-    suspend fun fetchMessages(chatId: String): List<Message> {
-        return try {
-            val querySnapshot = firestore.collection("Chats")
-                .document(chatId)
-                .collection("Messages")
-                .orderBy("timestamp")
-                .get()
-                .await()
-
-            querySnapshot.documents.map { document ->
-                val message = document.toObject(Message::class.java)
-                message?.apply {
-                    id = document.id // Set the Firestore document ID
+fun fetchMessages(chatId: String): Flow<Result<List<Message>>> {
+    return firestore.collection("Chats")
+        .document(chatId)
+        .collection("Messages")
+        .orderBy("timestamp")
+        .get()
+        .asFlow()
+        .mapSuccess { querySnapshot ->
+            querySnapshot.documents.mapNotNull { document ->
+                document.toObject(Message::class.java)?.apply {
+                    id = document.id
                 }
-            }.filterNotNull()
-        } catch (e: Exception) {
-            emptyList()
+            }
         }
-    }
+}
 
-
-//    suspend fun sendMessage(chatId: String, message: Message) {
-//        try {
-//            val messageRef = firestore.collection("Chats")
-//                .document(chatId)
-//                .collection("Messages")
-//                .add(message)
-//                .await()
-//
-//            val messageId = messageRef.id
-//
-//            //Zbog brisanja poruka
-//            firestore.collection("Chats")
-//                .document(chatId)
-//                .collection("Messages")
-//                .document(messageId)
-//                .update("id", messageId)
-//                .await()
-//
-//            firestore.collection("Chats")
-//                .document(chatId)
-//                .update("lastMessage",message.text,
-//                    "timestamp",message.timestamp,
-//                    "isImage",message.imageUrl,
-//                    "isVoice",message.voiceUrl)
-//                .await()
-//
-//            val users = firestore.collection("Chats").document(chatId).get().await()
-//                .get("users") as? List<String>
-//            val recipientId = users?.firstOrNull { it != message.senderId }
-//
-//            if (recipientId != null) {
-//                incrementUnreadCount(chatId, recipientId)
-//            }
-//
-//        } catch (e: Exception) {
-//            Log.e("DirectMessageRepository", "Error sending message: ${e.message}")
-//            throw e
-//        }
-//    }
 
     suspend fun sendMessage(chatId: String, message: Message) {
         try {
             val chatDocument = firestore.collection("Chats").document(chatId).get().await()
             val isGroup = chatDocument.getBoolean("isGroup") ?: false
-            Log.d("Check","provjera $isGroup -a")
             if (isGroup) {
                 sendGroupMessage(chatId, message)
             } else {
                 sendDirectMessage(chatId, message)
             }
         } catch (e: Exception) {
-            Log.e("DirectMessageRepository", "Error sending message: ${e.message}")
             throw e
         }
     }
-
-
-
-    //unchecked
 
     fun observeMessages(
         chatId: String,
@@ -149,11 +99,9 @@ class DirectMessageRepository @Inject constructor(
             .orderBy("timestamp")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Log.e("DirectMessageRepository", "Error observing messages: ${error.message}")
                     onError(error)
                     return@addSnapshotListener
                 }
-
                 if (snapshot != null && !snapshot.isEmpty) {
                     val messages = snapshot.toObjects(Message::class.java)
                     onMessagesChanged(messages)
@@ -161,77 +109,6 @@ class DirectMessageRepository @Inject constructor(
             }
     }
 
-    suspend fun fetchChatsWithUserDetails(userId: String): List<Chat> {
-        val chatsWithDetails = mutableListOf<Chat>()
-
-        try {
-            val snapshot = firestore.collection("Chats")
-                .whereArrayContains("users", userId)
-                .get()
-                .await()
-
-            for (document in snapshot.documents) {
-                val chat = document.toObject(Chat::class.java)?.apply { id = document.id }
-                if (chat != null) {
-                    val users = document.get("users") as List<String>
-                    Log.d("dmrepo", "Users in chat: $users")
-
-                    // Pronađi ID drugog korisnika
-                    val contactId = users.firstOrNull { it != userId }
-                    Log.d("dmrepo", "Contact ID: $contactId")
-
-                    if (contactId != null) {
-                        // Provjeri da li chat ima poruke
-                        val messagesSnapshot = firestore.collection("Chats")
-                            .document(chat.id)
-                            .collection("Messages")
-                            .orderBy(
-                                "timestamp",
-                                com.google.firebase.firestore.Query.Direction.DESCENDING
-                            )
-                            .limit(1)
-                            .get()
-                            .await()
-
-                        val lastMessageText = if (!messagesSnapshot.isEmpty) {
-                            val message =
-                                messagesSnapshot.documents.first().toObject(Message::class.java)
-                            message?.text ?: ""
-                        } else {
-                            ""
-                        }
-
-
-                        if (!messagesSnapshot.isEmpty) {
-                            // Ako postoje poruke, dohvatite korisnika
-                            val userSnapshot =
-                                firestore.collection("Users").document(contactId).get().await()
-                            val user = userSnapshot.toObject(User::class.java)
-
-                            if (user != null) {
-                                // Dodajte chat samo ako postoji međusobna komunikacija
-                                chatsWithDetails.add(
-                                    Chat(
-                                        id = chat.id,
-                                        name = user.username,
-                                        lastMessage = lastMessageText,
-                                        timestamp = chat.timestamp,
-                                        users = chat.users
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("DirectMessageRepository", "Error fetching chats with user details: ${e.message}")
-        }
-
-        return chatsWithDetails
-    }
-
- //ORGINAL VERZIJA
  fun observeChats(
      userId: String,
      onChatsUpdated: (List<Chat>) -> Unit,
@@ -241,7 +118,6 @@ class DirectMessageRepository @Inject constructor(
          .whereArrayContains("users", userId)
          .addSnapshotListener { snapshot, error ->
              if (error != null) {
-                 Log.e("DirectMessageRepository", "Error observing chats: ${error.message}")
                  onError(error)
                  return@addSnapshotListener
              }
@@ -258,12 +134,9 @@ class DirectMessageRepository @Inject constructor(
                          isGroup = !groupName.isNullOrEmpty()
                      }
 
-                     Log.d("susuti","susu ti $chat aloe ${chat?.id} and ${chat?.isGroup}")
                      if (chat != null) {
                          val isGroup = !chat.groupName.isNullOrEmpty()
-                         Log.d("susuti","susu ti $isGroup")
 
-                         // Fetch the latest message
                          firestore.collection("Chats")
                              .document(chat.id)
                              .collection("Messages")
@@ -276,22 +149,17 @@ class DirectMessageRepository @Inject constructor(
                              .addOnSuccessListener { messagesSnapshot ->
                                  val lastMessageText = if (!messagesSnapshot.isEmpty) {
                                      val message = messagesSnapshot.documents.first().toObject(Message::class.java)
-                                     Log.d("Important"," ${chat.id} and ${message?.text}")
                                      message?.text ?: ""
                                  } else {
                                      ""
                                  }
-
-                                 // Only include chats with messages
-                                 Log.d("Repository","retos $chat")
                                  if (!messagesSnapshot.isEmpty) {
                                      if (isGroup) {
-                                         // Group chat: use the group name
                                          chatsWithDetails.add(
                                              Chat(
                                                  id = chat.id,
                                                  isGroup = true,
-                                                 groupName = chat.groupName, // Group name
+                                                 groupName = chat.groupName,
                                                  lastMessage = lastMessageText,
                                                  timestamp = chat.timestamp,
                                                  users = chat.users,
@@ -300,7 +168,6 @@ class DirectMessageRepository @Inject constructor(
                                              )
                                          )
                                      } else {
-                                         // Direct chat: fetch the other user's details
                                          val users = document.get("users") as List<String>
                                          val contactId = users.firstOrNull { it != userId }
 
@@ -314,7 +181,7 @@ class DirectMessageRepository @Inject constructor(
                                                          chatsWithDetails.add(
                                                              Chat(
                                                                  id = chat.id,
-                                                                 name = user.username, // User's name
+                                                                 name = user.username,
                                                                  lastMessage = lastMessageText,
                                                                  timestamp = chat.timestamp,
                                                                  users = chat.users,
@@ -323,12 +190,9 @@ class DirectMessageRepository @Inject constructor(
                                                              )
                                                          )
                                                      }
-                                                     // Emit updated chats only after fetching all details
-                                                     Log.d("vazno","vrike ${chatsWithDetails.size}")
                                                      onChatsUpdated(chatsWithDetails)
                                                  }
                                          }
-                                         Log.d("vazno","vrike ${chatsWithDetails.size}")
                                      }
                                  }
                              }
@@ -341,14 +205,14 @@ class DirectMessageRepository @Inject constructor(
          }
  }
 
-
-
-
-    private suspend fun incrementUnreadCount(chatId: String, recipientId: String) {
-        firestore.collection("Chats").document(chatId)
+    fun incrementUnreadCount(chatId: String, recipientId: String): Flow<Result<Unit>> {
+        return firestore.collection("Chats")
+            .document(chatId)
             .update("unreadCount.$recipientId", FieldValue.increment(1))
-            .await()
+            .asFlow()
+            .mapSuccess { Unit }
     }
+
 
     suspend fun markMessagesAsSeen(chatId: String, userId: String) {
         try {
@@ -376,18 +240,23 @@ class DirectMessageRepository @Inject constructor(
         }
     }
 
-    suspend fun getUnreadCount(chatId: String, userId: String): Int {
-        val chatDocument = firestore.collection("Chats").document(chatId).get().await()
-        val unreadCountMap = chatDocument.get("unreadCount") as? Map<String, Long> ?: return 0
-        return unreadCountMap[userId]?.toInt() ?: 0
-    }
+fun getUnreadCount(chatId: String, userId: String): Flow<Result<Int>> {
+    return firestore.collection("Chats")
+        .document(chatId)
+        .get()
+        .asFlow()
+        .mapSuccess { chatDocument ->
+            val unreadCountMap = chatDocument.get("unreadCount") as? Map<String, Long> ?: return@mapSuccess 0
+            unreadCountMap[userId]?.toInt() ?: 0
+        }
+}
 
     suspend fun uploadImageAndSendMessage(chatId: String, imageUri: Uri, senderId: String) {
         try {
             val storageRef = FirebaseStorage.getInstance().reference
                 .child("chats/$chatId/images/${System.currentTimeMillis()}.jpg")
 
-            val uploadTask = storageRef.putFile(imageUri).await()
+            storageRef.putFile(imageUri).await()
 
             val imageUrl = storageRef.downloadUrl.await().toString()
 
@@ -399,7 +268,7 @@ class DirectMessageRepository @Inject constructor(
                 imageUrl = imageUrl
             )
 
-            sendMessage(chatId, message) // Koristi postojeću metodu za slanje poruke
+            sendMessage(chatId, message)
         } catch (e: Exception) {
             Log.e("DirectMessageRepository", "Error uploading image: ${e.message}")
             throw e
@@ -407,18 +276,14 @@ class DirectMessageRepository @Inject constructor(
     }
 
 
-    suspend fun deleteMessage(messageId: String,chatId: String) {
-        try {
-            firestore.collection("Chats")
-                .document(chatId)
-                .collection("Messages")
-                .document(messageId)
-                .delete()
-                .await()
-        } catch (e: Exception) {
-            Log.e("DirectMessageRepository", "Error deleting message: ${e.message}")
-            throw e
-        }
+    fun deleteMessage(messageId: String, chatId: String): Flow<Result<Unit>> {
+        return firestore.collection("Chats")
+            .document(chatId)
+            .collection("Messages")
+            .document(messageId)
+            .delete()
+            .asFlow()
+            .mapSuccess { Unit }
     }
 
     suspend fun uploadVoiceMessage(chatId: String, filePath: String): String? {
@@ -447,31 +312,31 @@ class DirectMessageRepository @Inject constructor(
         sendMessage(chatId, message)
     }
 
+fun createGroupChat(groupName: String, userIds: List<String>): Flow<Result<String>> {
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+        ?: return flowOf(Result.Failure(IllegalStateException("User is not logged in")))
+
+    val allUserIds = userIds.toMutableSet().apply { add(currentUserId) }
+
+    val chatId = firestore.collection("Chats").document().id
+    val chatData = hashMapOf(
+        "id" to chatId,
+        "users" to allUserIds.toList(),
+        "isGroup" to true,
+        "groupName" to groupName,
+        "lastMessage" to "",
+        "timestamp" to System.currentTimeMillis(),
+        "unreadCount" to allUserIds.toList().associateWith { 0 }
+    )
+
+    return firestore.collection("Chats")
+        .document(chatId)
+        .set(chatData)
+        .asFlow()
+        .mapSuccess { chatId }
+}
 
 
-    suspend fun createGroupChat(groupName: String, userIds: List<String>):String {
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-            ?: throw IllegalStateException("User is not logged in")
-
-        // Ensure the current user's ID is included in the user list
-        val allUserIds = userIds.toMutableSet() // Use a set to avoid duplicates
-        allUserIds.add(currentUserId)
-
-        Log.d("prov","ovoje ${allUserIds.size}  i $allUserIds ali $userIds")
-
-        val chatId = firestore.collection("Chats").document().id
-        val chatData = hashMapOf(
-            "id" to chatId,
-            "users" to allUserIds.toList(),
-            "isGroup" to true,
-            "groupName" to groupName,
-            "lastMessage" to "",
-            "timestamp" to System.currentTimeMillis(),
-            "unreadCount" to allUserIds.toList().associateWith { 0 }
-        )
-        firestore.collection("Chats").document(chatId).set(chatData).await()
-        return chatId
-    }
 
     private suspend fun sendDirectMessage(chatId: String, message: Message) {
         try {
@@ -483,7 +348,6 @@ class DirectMessageRepository @Inject constructor(
 
             val messageId = messageRef.id
 
-            // Ažuriranje ID poruke
             firestore.collection("Chats")
                 .document(chatId)
                 .collection("Messages")
@@ -491,7 +355,6 @@ class DirectMessageRepository @Inject constructor(
                 .update("id", messageId)
                 .await()
 
-            // Ažuriranje poslednje poruke
             firestore.collection("Chats")
                 .document(chatId)
                 .update(
@@ -500,7 +363,6 @@ class DirectMessageRepository @Inject constructor(
                     "isImage", message.imageUrl,
                     "isVoice", message.voiceUrl
                 ).await()
-
             val users = firestore.collection("Chats").document(chatId).get().await()
                 .get("users") as? List<String>
             val recipientId = users?.firstOrNull { it != message.senderId }
@@ -508,13 +370,11 @@ class DirectMessageRepository @Inject constructor(
             if (recipientId != null) {
                 incrementUnreadCount(chatId, recipientId)
             }
-
         } catch (e: Exception) {
             Log.e("DirectMessageRepository", "Error sending direct message: ${e.message}")
             throw e
         }
     }
-
 
     suspend fun sendGroupMessage(chatId: String, message: Message) {
         val messageRef = firestore.collection("Chats")
@@ -532,7 +392,6 @@ class DirectMessageRepository @Inject constructor(
             .update("id", messageId)
             .await()
 
-        // Ažuriraj poslednju poruku i povećaj brojač za sve korisnike osim pošiljaoca
         val chatDocument = firestore.collection("Chats").document(chatId).get().await()
         val userIds = chatDocument.get("users") as List<String>
 
@@ -551,44 +410,73 @@ class DirectMessageRepository @Inject constructor(
         }
     }
 
-    suspend fun markGroupMessagesAsSeen(chatId: String, userId: String) {
-        firestore.collection("Chats").document(chatId)
+    fun markGroupMessagesAsSeen(chatId: String, userId: String): Flow<Result<Unit>> {
+        return firestore.collection("Chats")
+            .document(chatId)
             .update("unreadCount.$userId", 0)
-            .await()
+            .asFlow()
+            .mapSuccess { Unit }
     }
 
 
-
-    suspend fun fetchImageMessages(chatId: String): List<String> {
-        return try {
-            firestore.collection("Chats")
-                .document(chatId)
-                .collection("Messages")
-                .whereNotEqualTo("imageUrl", null)
-                .get()
-                .await()
-                .documents
-                .mapNotNull { it.getString("imageUrl") }
-        } catch (e: Exception) {
-            Log.e("DirectMessageRepository", "Error fetching image messages: ${e.message}")
-            emptyList()
-        }
-    }
-
-    suspend fun fetchChatName(chatId: String): String? {
-        return try {
-            val chatDocument = firestore.collection("Chats").document(chatId).get().await()
-            val isGroup = chatDocument.getBoolean("isGroup") ?: false
-            if (isGroup) {
-                chatDocument.getString("groupName")
-            } else {
-                null
+    fun fetchImageMessages(chatId: String): Flow<Result<List<String>>> {
+        return firestore.collection("Chats")
+            .document(chatId)
+            .collection("Messages")
+            .whereNotEqualTo("imageUrl", null)
+            .get()
+            .asFlow()
+            .mapSuccess { querySnapshot ->
+                querySnapshot.documents.mapNotNull { it.getString("imageUrl") }
             }
+    }
+
+
+    fun fetchChatName(chatId: String): Flow<Result<String?>> {
+        return firestore.collection("Chats")
+            .document(chatId)
+            .get()
+            .asFlow()
+            .mapSuccess { chatDocument ->
+                val isGroup = chatDocument.getBoolean("isGroup") ?: false
+                if (isGroup) {
+                    chatDocument.getString("groupName")
+                } else {
+                    null
+                }
+            }
+    }
+
+    fun isGroupChat(chatId: String): Flow<Result<Boolean>> {
+        return firestore.collection("Chats")
+            .document(chatId)
+            .get()
+            .asFlow()
+            .mapSuccess { chatDocument ->
+                chatDocument.getBoolean("isGroup") ?: false
+            }
+    }
+
+    fun fetchGroupMembers(chatId: String): Flow<Result<List<User>>> = flow {
+        try {
+            val chatSnapshot = firestore.collection("Chats").document(chatId).get().await()
+            val userIds = chatSnapshot.get("users") as? List<String> ?: emptyList()
+
+            val members = userIds.mapNotNull { userId ->
+                try {
+                    val userSnapshot = firestore.collection("Users").document(userId).get().await()
+                    val user = userSnapshot.toObject(User::class.java)
+                    user
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            emit(Result.Success(members))
         } catch (e: Exception) {
-            Log.e("DirectMessageRepository", "Error fetching chat name: ${e.message}")
-            null
+            emit(Result.Failure(e))
         }
     }
+
 
 
 

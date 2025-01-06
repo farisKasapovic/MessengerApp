@@ -42,18 +42,16 @@ class GroupChatAdapter(
             .placeholder(R.drawable.default_profile_picture)
             .into(holder.profilePictureIV)
 
-        // Update selection circle based on state
         holder.selectCircleIV.setImageResource(
             if (isSelected) R.drawable.circle_selected else R.drawable.circle_unselected
         )
 
-        // Handle click for other contacts
         if (contact.id == preselectedUserId) {
-            holder.selectCircleIV.alpha = 0.5f // Semi-transparent to indicate it's fixed
-            holder.itemView.setOnClickListener(null) // Disable clicks
+            holder.selectCircleIV.alpha = 0.5f
+            holder.itemView.setOnClickListener(null)
             Log.d("GroupChatAdapter", "Preselected user: ${contact.id} is always selected.")
         } else {
-            holder.selectCircleIV.alpha = 1.0f // Fully opaque for other contacts
+            holder.selectCircleIV.alpha = 1.0f
             holder.itemView.setOnClickListener {
                 if (isSelected) {
                     selectedContacts.remove(contact.id)
@@ -61,7 +59,7 @@ class GroupChatAdapter(
                     selectedContacts.add(contact.id)
                 }
                 onContactSelected(contact.id, !isSelected)
-                notifyItemChanged(position) // Update the UI
+                notifyItemChanged(position)
             }
         }
 

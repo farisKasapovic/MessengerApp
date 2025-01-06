@@ -48,14 +48,12 @@ class ChatAdapter(
             holder.lastMessage.text = chat.lastMessage
         }
         if (chat.isGroup) {
-            // Load group picture (optional: default icon for groups)
-            holder.profilePicture.setImageResource(R.drawable.dots)
+            holder.profilePicture.setImageResource(R.drawable.ic_group)
         } else {
         onProfilePictureLoad(chat.users[1],holder.profilePicture)
         }
         holder.lastMessageTime.text = formatTimestampToHour(chat.timestamp)
 
-        // Dohvati `unreadCount` i prikaži ga
         onUnreadCountFetch(chat.id) { unreadCount ->
             if (unreadCount > 0) {
                 holder.unreadCount.visibility = View.VISIBLE

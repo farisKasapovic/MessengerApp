@@ -26,14 +26,12 @@ class NotificationManagerService(private val context: Context) {
     // Register FCM token and save to Firestore
     fun registerFCMToken() {
         if (currentUserId == null) {
-            Log.e("NotificationService", "User is not authenticated.")
             return
         }
 
         com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result
-                Log.d("NotificationService", "Retrieved FCM token: $token")
 
                 firestore.collection("Users").document(currentUserId)
                     .update("fcmToken", token)
@@ -49,17 +47,16 @@ class NotificationManagerService(private val context: Context) {
         }
     }
 
-    // Listen for new messages in Firestore
+
     fun listenForNewMessages(chatId: String) {
         if (currentUserId == null) {
-            Log.e("NotificationService", "User is not authenticated.")
             return
         }
 
         val listener = firestore.collection("Chats")
             .document(chatId)
             .collection("Messages")
-            .whereNotEqualTo("senderId", currentUserId) // Exclude messages sent by the current user
+            .whereNotEqualTo("senderId", currentUserId)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
                     Log.e("NotificationService", "Error listening for messages: ${e.message}")
@@ -71,24 +68,15 @@ class NotificationManagerService(private val context: Context) {
                         if (change.type == DocumentChange.Type.ADDED) {
                             val message = change.document.toObject(Message::class.java)
                             Log.d("NotificationService", "New message: ${message.text}")
-                            // Trigger a foreground notification
                             sendLocalNotification(message, chatId)
                         }
                     }
                 }
             }
 
-        // Store listener for cleanup later
         messageListeners[chatId] = listener
     }
 
-    // Stop listening for messages
-    fun stopListeningForMessages(chatId: String) {
-        messageListeners[chatId]?.remove()
-        messageListeners.remove(chatId)
-    }
-
-    // Send a local notification for foreground updates
     private fun sendLocalNotification(message: Message, chatId: String) {
 
         firestore.collection("Users")
@@ -116,7 +104,6 @@ class NotificationManagerService(private val context: Context) {
             )
             notificationManager.createNotificationChannel(channel)
         }
-
 
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_talksy)

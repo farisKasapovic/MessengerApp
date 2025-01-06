@@ -4,6 +4,7 @@ import praksa.unravel.talksy.main.data.repositories.DirectMessageRepository
 import praksa.unravel.talksy.main.model.Message
 import javax.inject.Inject
 
+
 class ObserveMessageUseCase @Inject constructor(
     private val repository: DirectMessageRepository
 ) {

@@ -6,6 +6,6 @@ import java.util.Locale
 
 fun formatTimestampToHour(timestamp: Long): String {
     val date = Date(timestamp)
-    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault()) // Adjust the format as needed
+    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
     return formatter.format(date)
 }

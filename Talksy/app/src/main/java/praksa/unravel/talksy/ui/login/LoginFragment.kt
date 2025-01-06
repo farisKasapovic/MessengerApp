@@ -64,9 +64,7 @@ class LoginFragment : Fragment() {
         // Email/Password login
         binding.loginBtn1.setOnClickListener {
             val email = binding.loginET1.text.toString()
-            //val password = binding.loginET2.text.toString()
             val password = binding.loginET21.text.toString()
-
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 viewModel.loginUser(email, password)
             } else {
@@ -100,6 +98,7 @@ class LoginFragment : Fragment() {
 
             loginButton.performClick()
         }
+
         //Google login
         binding.loginBtn3.setOnClickListener {
             val googleSignInClient = GoogleSignIn.getClient(
@@ -162,7 +161,7 @@ class LoginFragment : Fragment() {
 
                     is LoginState.Error -> {
                         Log.d("Proba","uslo u errorState")
-                        ToastUtils.showCustomToast(requireContext(), state.errorMessage)
+                        ToastUtils.showCustomToast(requireContext(),"Wrong input, try again !")
                     }
 
                     is LoginState.ResetSuccess -> {
@@ -178,16 +177,7 @@ class LoginFragment : Fragment() {
             }
         }
     }
-    private fun setLoadingState(isLoading: Boolean) {
-        binding.loadingPB.visibility = if (isLoading) View.VISIBLE else View.GONE
 
-        // Disable/Enable UI elements
-        binding.loginBtn1.isEnabled = !isLoading
-        binding.loginBtn2.isEnabled = !isLoading
-        binding.loginBtn3.isEnabled = !isLoading
-        binding.loginET1.isEnabled = !isLoading
-        binding.loginET21.isEnabled = !isLoading
-    }
 
 
 
