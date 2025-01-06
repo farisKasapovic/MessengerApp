@@ -35,6 +35,8 @@ class MessageAdapter(
         val timestamp: TextView = itemView.findViewById(R.id.messageTimestamp)
         val messageImage: ImageView = itemView.findViewById(R.id.messageImage)
         val playButton: ImageView = itemView.findViewById(R.id.playButton)
+        val usernameText: TextView? = itemView.findViewById(R.id.usernameText)
+
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -55,6 +57,13 @@ class MessageAdapter(
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
         val message = messages[position]
+
+Log.d("Vrijednost","vridnosti ${message.senderId} ${message.senderName}")
+
+        if (getItemViewType(position) == VIEW_TYPE_RECEIVED) {
+            holder.usernameText?.visibility = View.VISIBLE
+            holder.usernameText?.text =message.senderName
+        }
 
         if (message.text.isNotEmpty()) {
             holder.messageText.visibility = View.VISIBLE

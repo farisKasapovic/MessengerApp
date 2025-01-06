@@ -96,15 +96,33 @@ class DirectMessageViewModel @Inject constructor(
 
     fun sendMessage(chatId: String, text: String) {
         val senderId = FirebaseAuth.getInstance().currentUser?.uid
+        var senderName: String = ""
+
         if (senderId == null) {
             Log.e("DirectMessageViewModel", "User not logged in!")
             _directMessageState.value = DirectMessageState.Error("User not logged in!")
             return
         }
+
+        viewModelScope.launch {
+            getUserInformationUseCase(chatId).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        senderName = result.data.username
+                        Log.d("dalisamprikupio","DaLiSamPrikupio $senderName")
+                    }
+                    is Result.Failure -> {
+                        _directMessageState.postValue(DirectMessageState.Error("Failed to fetch user details: ${result.error.message}")
+                        )
+                    }
+                }
+            }
+        }
         val message = Message(
             text = text,
             senderId = senderId,
-            timestamp = System.currentTimeMillis()
+            timestamp = System.currentTimeMillis(),
+            senderName = senderName
 
         )
         viewModelScope.launch {

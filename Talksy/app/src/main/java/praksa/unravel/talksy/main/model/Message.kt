@@ -7,6 +7,7 @@ data class Message(
     val timestamp: Long = 0,
     val seen: Boolean = false,
     val imageUrl: String? = null,
-    val voiceUrl: String? = null
+    val voiceUrl: String? = null,
+    val senderName: String = "", // Dodato polje za ime korisnika
 )
 
